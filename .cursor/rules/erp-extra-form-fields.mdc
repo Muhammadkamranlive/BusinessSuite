@@ -1,0 +1,38 @@
+---
+description: Tenant extra fields on every module create/edit form
+alwaysApply: true
+---
+
+# BusinessSuite ERP — Tenant extra form fields
+
+Every tenant can extend **fixed** module forms with extra fields. Do not skip this on new create/edit screens.
+
+## Pattern (mandatory on new forms)
+
+1. Pick a stable `formKey` from `modules/forms/form-catalog.ts` (add the key there if the form is new).
+2. In the page: `const [extraJson, setExtraJson] = useState("");`
+3. After fixed fields, still inside `<form>`:
+
+```tsx
+<ExtraFieldsBlock formKey="crm.customer" valueJson={extraJson} onChange={setExtraJson} />
+```
+
+4. After create/update, persist the JSON string against the record id:
+
+```tsx
+const row = createX(tenantId, data);
+persistExtraFields(tenantId, "crm.customer", row.id, extraJson);
+```
+
+5. If JSON exists, show it after fixed fields / on lists via `ExtraFieldsReadout`.
+
+## Storage
+
+- Form **format** (field type, label, placeholder, default) is per tenant + formKey (`extra-fields.store` schema).
+- Field **answers** are a JSON string per tenant + formKey + recordId.
+- Use `ExtraFieldsBlock` “Add extra field / Modify form” — do not invent a second designer.
+- HRM standalone custom forms (`/hrm/forms`) are employee paperwork, not entity extra fields.
+
+## UI
+
+Shared primitives only (`Field`, `TextInput`, `SelectInput`, `Button`, `Panel`) + theme CSS vars.

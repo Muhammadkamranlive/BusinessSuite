@@ -1,0 +1,43 @@
+{
+  "name": "businesssuite-erp-cloud",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --webpack --hostname 127.0.0.1",
+    "dev:turbo": "next dev --hostname 127.0.0.1",
+    "dev:webpack": "next dev --webpack --hostname 127.0.0.1",
+    "build": "next build --webpack",
+    "start": "next start",
+    "preview": "next build --webpack && next start",
+    "typecheck": "tsc --noEmit",
+    "db:check": "node scripts/check-supabase.mjs",
+    "db:status": "node scripts/db-migrate.mjs status",
+    "db:link": "supabase link --project-ref xknvxjzrtfgvuiaiccii",
+    "db:push": "supabase db push",
+    "db:migrate": "supabase db push",
+    "db:repair": "supabase migration repair --status applied",
+    "db:seed:verify": "node scripts/verify-demo-seed.mjs",
+    "deploy:check": "node scripts/deploy-preflight.mjs",
+    "email:dev": "npm run dev --prefix email-api",
+    "email:install": "npm install --prefix email-api"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "latest",
+    "@types/node": "latest",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "autoprefixer": "latest",
+    "clsx": "latest",
+    "jspdf": "latest",
+    "lucide-react": "latest",
+    "next": "latest",
+    "postcss": "latest",
+    "react": "latest",
+    "react-dom": "latest",
+    "recharts": "latest",
+    "tailwind-merge": "latest",
+    "tailwindcss": "^3.4.17",
+    "typescript": "latest"
+  },
+  "devDependencies": {}
+}

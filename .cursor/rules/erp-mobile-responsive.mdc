@@ -1,0 +1,35 @@
+---
+description: Mobile-first / Capacitor-ready responsive UX for BusinessSuite ERP
+alwaysApply: true
+---
+
+# BusinessSuite ERP — Mobile responsive (Capacitor-ready)
+
+Every authenticated and public surface must work on phone-width viewports so the same Next.js UI can ship inside Capacitor.
+
+## Navigation (mandatory)
+
+- Desktop: fixed left accordion sidebar (`SidebarNav`).
+- Mobile (`< lg`): hamburger opens a full-height **slide-over drawer** with the same accordion (modules + children). Overlay closes the drawer; navigating closes it.
+- Do not use a horizontal module-chip strip as the only mobile nav.
+- Keep top **GlobalMenuSearch** (under header on small screens). Touch targets ≥ ~44px for menu / chevron / close.
+- Respect `env(safe-area-inset-*)` on header, drawer, main, and dialogs.
+
+## Layout & overflow
+
+- Root shell and `body`: `overflow-x: hidden`; use `min-h-[100dvh]` where full height matters.
+- Page content: `bs-page` + `min-w-0` so flex/grid children don’t blow past the viewport.
+- Wide tables: wrap in `overflow-x-auto` (or rely on `.bs-card` / `.bs-page table` mobile rules in `globals.css`). Prefer stacking form grids (`grid` → `md:grid-cols-*`) over fixed multi-column layouts on phones.
+- Toolbars, subnav chips (`AdminSubnav`), confirm actions: stack or scroll horizontally; full-width primary buttons on the smallest breakpoint when it helps tap accuracy.
+
+## Viewport / Capacitor
+
+- Keep Next.js `viewport` export with `width=device-width`, `viewportFit: "cover"`, and sensible `themeColor` in `app/layout.tsx`.
+- Prefer `100dvh` over `100vh` for shell chrome.
+- Inputs: `touch-action: manipulation` (already on form controls in `globals.css`); avoid hover-only critical actions.
+
+## When adding pages
+
+1. Use shared shell / breadcrumbs / UI primitives — don’t invent fixed-width layouts.
+2. Test mentally at ~375px: nav reachable, no horizontal page scroll, tables scroll inside cards, forms usable.
+3. Module subnavs / action rows must wrap or scroll; never force a desktop-only sidebar pattern on mobile.

@@ -1,0 +1,33 @@
+---
+description: Confirmations, recycle bin, list search/sort/export for ERP records
+alwaysApply: true
+---
+
+# BusinessSuite ERP — Record lifecycle (confirm · trash · list tools)
+
+## Confirm before every write
+
+Use `useConfirm()` from `components/common/use-confirm.tsx` for:
+- **Save / create** → `askSave({ editing, entityLabel, onConfirm })`
+- **Update** → same `askSave` with `editing: true`
+- **Move to trash** → `askTrash`
+- **Restore** → `askRestore`
+- **Permanent delete** → `askPurge`
+
+Never call create/update/trash/restore/purge without a confirm dialog. Render `{dialog}` once on the page.
+
+## Soft delete + recycle bin
+
+- Soft-delete via store `trashX(id)` (sets `is_active=false` + `moveToTrash` snapshot).
+- Tenant recycle bin UI: `/settings/recycle-bin` (persisted `businesssuite:recycle-bin:v1`).
+- Restore uses registered handlers (`bindTrashRestore` / HRM factory).
+- Documents keep their own `/documents/bin` for file blobs.
+
+## List pages
+
+Every entity list should include:
+1. `DataListToolbar` — search, optional status filter, sort + asc/desc, CSV + PDF export (`lib/list-export.ts`).
+2. `RecordRowActions` — Edit + Trash.
+3. Edit opens the same form panel (load values + extra fields).
+4. Export operates on the **filtered/sorted** rows and writes an audit `export` event.
+5. Audit logs persist (`businesssuite:audit-logs:v1`).

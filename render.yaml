@@ -1,0 +1,34 @@
+# Render Blueprint — deploy Email API (Express) as a web service.
+# Next.js ERP: deploy separately on Vercel (see docs/DEPLOY-ONLINE.md).
+#
+# Usage: Render Dashboard → New → Blueprint → connect repo → select render.yaml
+
+services:
+  - type: web
+    name: businesssuite-email-api
+    runtime: docker
+    dockerfilePath: ./email-api/Dockerfile
+    dockerContext: ./email-api
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: EMAIL_API_KEY
+        generateValue: true
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: MAIL_FROM_NAME
+        value: BusinessSuite ERP
+      - key: MAIL_FROM
+        sync: false
+      - key: EMAIL_DRY_RUN
+        value: "false"
+      - key: EMAIL_DATA_DIR
+        value: /data
+    disk:
+      name: email-api-data
+      mountPath: /data
+      sizeGB: 1

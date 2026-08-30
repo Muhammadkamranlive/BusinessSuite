@@ -1,0 +1,42 @@
+---
+description: ERP menu ACL, search, and design-token conventions for BusinessSuite
+alwaysApply: true
+---
+
+# BusinessSuite ERP — Access Control & Design System
+
+## Menu rights model (mandatory for every menu)
+
+Every menu/page must register in `lib/menu-registry.ts` with:
+- `id` (stable, e.g. `hrm.employees`)
+- `module`, `label`, `href`, `keywords`
+- rights: `view` (default gate), `create`, `update`, `delete`
+
+Permissions are assigned at **two levels**:
+1. **Role level** — default matrix for a role (e.g. accountant / hr_manager)
+2. **User level** — per-user overrides (grant or revoke on top of role)
+
+Effective rights = role rights merged with user overrides (user wins).
+
+Super Admin / Company Admin always have full rights unless explicitly revoked at user level by Super Admin only.
+
+## When adding a new menu
+
+1. Add entry to `lib/menu-registry.ts` (and `navGroups` in `lib/permissions.ts`)
+2. Gate the page with `canMenu(user, menuId, "view")`
+3. Gate buttons with `canMenu(user, menuId, "create"|"update"|"delete")`
+4. Ensure it appears in global top search (automatic via registry)
+5. Use shared UI primitives only — never invent ad-hoc input/button/card styles
+
+## Design system (single source of truth)
+
+- Active theme file: `config/theme.json` (updated by admin Access Control)
+- Default theme file: `config/theme.default.json` (reset target)
+- API: `GET/PUT/DELETE /api/theme`
+- CSS variables in `app/globals.css` (`--bs-*`) are applied at runtime from the JSON
+- Inputs/Buttons/Cards must use shared UI primitives + CSS vars — never hardcode random colors
+- "Reset to default theme" restores `theme.json` from `theme.default.json`
+
+## Global search
+
+Top nav center search must list **all** menus from the registry the current user can `view`. Future menus must be registry-driven so search stays complete. Support autocomplete + ⌘K / Ctrl+K focus. See also `.cursor/rules/erp-nav-ux.mdc` for breadcrumbs and grouped module navigation.

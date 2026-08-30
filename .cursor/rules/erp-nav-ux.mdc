@@ -1,0 +1,44 @@
+---
+description: Breadcrumbs, menu search, and traditional accordion sidebar
+alwaysApply: true
+---
+
+# BusinessSuite ERP — Navigation UX (Breadcrumbs & Menu Search)
+
+## Breadcrumbs (mandatory)
+
+Every authenticated module page must show breadcrumbs so users know where they are.
+
+- Place crumbs **above** the page title / module subnav (or as the first row of the module chrome).
+- Pattern: `Home / Product / Page` (e.g. `Home / HRM / Employees`). Optional section crumb when useful.
+- Current page is plain text (not a link). Parents are links.
+- Nested routes (e.g. `/hrm/employees/[id]`) must extend the trail (… / Employees / Profile).
+- Use the shared `Breadcrumbs` component (`components/common/breadcrumbs.tsx`) — do not invent ad-hoc crumb markup.
+- When adding a new module page, wire crumbs via the module subnav or pass an explicit `trail`.
+
+## Global menu search autocomplete (mandatory)
+
+Every dashboard shell must keep the top-center **menu search** with autocomplete:
+
+- Component: `GlobalMenuSearch` in the app shell header (already on ERP pages).
+- Results come from `lib/menu-registry.ts` filtered by `canMenu(..., "view")`.
+- Keyboard: ArrowUp/ArrowDown, Enter to open, Escape to close; ⌘K / Ctrl+K focus when available.
+- New menus **must** be registry-driven so search stays complete.
+- Do not remove or hide menu search from module layouts.
+
+## Sidebar accordion (mandatory)
+
+The left sidebar uses a **traditional accordion** (expand/collapse under each module):
+
+1. Root lists all product modules the user can view (Dashboard, CRM, Sales, HRM, …).
+2. Clicking the **chevron** expands/collapses that module’s child menus in place (dropdown under the module).
+3. Clicking the **module label** navigates to the module home (`href`) and keeps the accordion UX.
+4. Long menus use **nested accordions** (`group` on nav children): Core / Employment / Organization (etc.) are chevron rows. Click the section to expand/collapse its pages — same open/close pattern as the module row. Auto-expand the section that contains the current URL. Do not dump every child as a flat list under the module.
+5. When the current URL belongs to a module, **auto-expand** that module and **highlight** the matching child (path + hash aware).
+6. Active child: high-contrast (white on dark). Expanded/active module row uses teal or soft white fill.
+
+Do not use drill-down “replace the whole sidebar with Back” for primary navigation. Do not split one product (e.g. HRM) into multiple top-level sidebar modules.
+
+## Routes
+
+Every sidebar `href` must resolve to a real `app/.../page.tsx` (or an in-page hash on an existing page such as `/reports#sales`). Prefer dedicated routes over `#` stubs for distinct menus (e.g. `/crm/contacts`, not `/crm/customers#contacts`).

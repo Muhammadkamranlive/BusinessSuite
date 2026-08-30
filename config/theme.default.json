@@ -1,0 +1,12 @@
+{
+  "ink": "#0f2452",
+  "cloud": "#eef5f1",
+  "line": "#d4e4db",
+  "teal": "#1877f2",
+  "coral": "#e41e3f",
+  "amber": "#87b8f8",
+  "mint": "#226fd9",
+  "radius": "0.5rem",
+  "inputHeight": "2.5rem",
+  "focusRing": "#1877f2"
+}
