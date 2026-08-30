@@ -1,0 +1,7 @@
+_reference/
+*.pdf
+.cursor/
+email-api/node_modules/
+email-api/data/
+PelicanHRM.pdf
+DEMO_CREDENTIALS.txt
