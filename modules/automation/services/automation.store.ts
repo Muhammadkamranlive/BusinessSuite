@@ -213,7 +213,7 @@ export function ensureAutomationSeeded(tenantId: string) {
 function mergeMissingSystemRules(tenantId: string) {
   if (typeof window === "undefined") return;
   const patchKey = `${SYSTEM_RULES_PATCH_KEY}:${tenantId}`;
-  if (window.localStorage.getItem(patchKey)) return;
+  if (loadPersisted<string>(patchKey)) return;
 
   const { rules: seeded } = seedAutomationForTenant(tenantId);
   const rows = read<AutomationRule[]>(RULES_KEY, []);
@@ -228,7 +228,7 @@ function mergeMissingSystemRules(tenantId: string) {
       !removedSystemKeys(tenantId).includes(`${r.event_key}::${r.name}`)
   );
   if (toAdd.length) write(RULES_KEY, [...toAdd, ...rows]);
-  window.localStorage.setItem(patchKey, "1");
+  savePersisted(patchKey, "1");
 }
 
 /* ─── Rules ─── */

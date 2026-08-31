@@ -4,3 +4,4 @@ data/
 *.log
 .firebase/
 firebase-debug.log
+.vercel

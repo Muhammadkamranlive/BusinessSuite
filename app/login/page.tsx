@@ -47,7 +47,7 @@ function LoginForm() {
     setError("");
     setLoading(true);
     try {
-      const account = signInToWorkspace(email, password);
+      const account = await signInToWorkspace(email, password);
 
       if (isSupabaseAuthEnabled()) {
         try {

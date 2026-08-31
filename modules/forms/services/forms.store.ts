@@ -8,6 +8,7 @@ import type {
 } from "@/modules/forms/model";
 import { notifySurveyAssigned } from "@/lib/email/triggers";
 import { createHrNotification, listEmployees } from "@/modules/hrm/services/hrm.store";
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 
 const STORAGE_KEY = "businesssuite:hrm-forms:v1";
 const STORAGE_VERSION = 1;
@@ -44,7 +45,7 @@ function buildSnapshot(): Snapshot {
 function persist() {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(buildSnapshot()));
+    savePersisted(STORAGE_KEY, buildSnapshot());
   } catch {
     /* ignore */
   }
@@ -121,9 +122,8 @@ function ensureHydrated() {
     return;
   }
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const snap = JSON.parse(raw) as Partial<Snapshot>;
+    const snap = loadPersisted<Partial<Snapshot>>(STORAGE_KEY);
+    if (snap) {
       if (snap.version === STORAGE_VERSION) {
         forms.length = 0;
         assignments.length = 0;

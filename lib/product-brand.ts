@@ -3,6 +3,8 @@
  * Editable from Administration → Access Control. Persisted in config/product.json.
  */
 
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
+
 export type ProductBrand = {
   productName: string;
   productTagline: string;
@@ -20,19 +22,18 @@ const CACHE_KEY = "businesssuite:product-brand:v1";
 export function cacheProductBrand(brand: ProductBrand) {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(CACHE_KEY, JSON.stringify(brand));
+    savePersisted(CACHE_KEY, brand);
     window.dispatchEvent(new CustomEvent("bs-product-brand", { detail: brand }));
   } catch {
-    /* private mode */
+    /* ignore */
   }
 }
 
 export function readCachedProductBrand(): ProductBrand {
   if (typeof window === "undefined") return defaultProductBrand;
   try {
-    const raw = window.localStorage.getItem(CACHE_KEY);
-    if (!raw) return defaultProductBrand;
-    const parsed = JSON.parse(raw) as Partial<ProductBrand>;
+    const parsed = loadPersisted<Partial<ProductBrand>>(CACHE_KEY);
+    if (!parsed) return defaultProductBrand;
     return { ...defaultProductBrand, ...parsed };
   } catch {
     return defaultProductBrand;

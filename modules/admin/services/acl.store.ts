@@ -4,6 +4,7 @@ import { isPlatformOnlyMenu, isSuperAdminRole, SUPER_ADMIN_ONLY_MENU_IDS } from 
 import { menuRegistry, type MenuRight, getMenuById } from "@/lib/menu-registry";
 import { tenantHasMenuApp, tenantHasModule } from "@/modules/billing/services/tenant-apps.store";
 import { getRoleModules, listRoleKeys, permissionMatrix } from "@/lib/permissions";
+import { loadPersisted, removePersisted, savePersisted } from "@/modules/core/services/local-persist";
 
 const EMPLOYEE_ACL_PATCH_KEY = "businesssuite:acl:employee-self-service:v4";
 const PLATFORM_ACL_PATCH_KEY = "businesssuite:acl:company-admin-platform:v2";
@@ -99,19 +100,11 @@ export function buildDefaultRoleAcl(): Record<RoleKey, MenuAclMap> {
 }
 
 function readJson<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
+  return loadPersisted<T>(key) ?? fallback;
 }
 
 function writeJson(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(value));
+  savePersisted(key, value);
 }
 
 let roleAclCache: Record<RoleKey, MenuAclMap> | null = null;
@@ -134,20 +127,20 @@ export function getRoleAcl(): Record<RoleKey, MenuAclMap> {
       }
     }
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(EMPLOYEE_ACL_PATCH_KEY)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(EMPLOYEE_ACL_PATCH_KEY)) {
     roleAclCache.employee = buildDefaultAclForRole("employee");
     writeJson(ROLE_ACL_KEY, roleAclCache);
-    window.localStorage.setItem(EMPLOYEE_ACL_PATCH_KEY, "1");
+    savePersisted(EMPLOYEE_ACL_PATCH_KEY, "1");
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(PLATFORM_ACL_PATCH_KEY)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(PLATFORM_ACL_PATCH_KEY)) {
     for (const role of Object.keys(roleAclCache)) {
       if (isSuperAdminRole(role)) continue;
       roleAclCache[role] = stripPlatformMenus(roleAclCache[role] ?? {});
     }
     writeJson(ROLE_ACL_KEY, roleAclCache);
-    window.localStorage.setItem(PLATFORM_ACL_PATCH_KEY, "1");
+    savePersisted(PLATFORM_ACL_PATCH_KEY, "1");
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(ORG_TREE_ACL_PATCH_KEY)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(ORG_TREE_ACL_PATCH_KEY)) {
     for (const role of Object.keys(roleAclCache)) {
       const map = { ...(roleAclCache[role] ?? {}) };
       const root = map["hrm.root"] ?? emptyRights();
@@ -156,9 +149,9 @@ export function getRoleAcl(): Record<RoleKey, MenuAclMap> {
       roleAclCache[role] = isSuperAdminRole(role) ? map : stripPlatformMenus(map);
     }
     writeJson(ROLE_ACL_KEY, roleAclCache);
-    window.localStorage.setItem(ORG_TREE_ACL_PATCH_KEY, "1");
+    savePersisted(ORG_TREE_ACL_PATCH_KEY, "1");
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(FLOW_DIAGRAM_ACL_PATCH_KEY)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(FLOW_DIAGRAM_ACL_PATCH_KEY)) {
     for (const role of Object.keys(roleAclCache)) {
       const allowed = new Set(getRoleModules(role as RoleKey));
       const map = { ...(roleAclCache[role] ?? {}) };
@@ -171,9 +164,9 @@ export function getRoleAcl(): Record<RoleKey, MenuAclMap> {
       roleAclCache[role] = isSuperAdminRole(role) ? map : stripPlatformMenus(map);
     }
     writeJson(ROLE_ACL_KEY, roleAclCache);
-    window.localStorage.setItem(FLOW_DIAGRAM_ACL_PATCH_KEY, "1");
+    savePersisted(FLOW_DIAGRAM_ACL_PATCH_KEY, "1");
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(COMPOSE_EMAIL_ACL_PATCH_KEY)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(COMPOSE_EMAIL_ACL_PATCH_KEY)) {
     for (const role of Object.keys(roleAclCache)) {
       const allowed = new Set(getRoleModules(role as RoleKey));
       const map = { ...(roleAclCache[role] ?? {}) };
@@ -186,9 +179,9 @@ export function getRoleAcl(): Record<RoleKey, MenuAclMap> {
       roleAclCache[role] = isSuperAdminRole(role) ? map : stripPlatformMenus(map);
     }
     writeJson(ROLE_ACL_KEY, roleAclCache);
-    window.localStorage.setItem(COMPOSE_EMAIL_ACL_PATCH_KEY, "1");
+    savePersisted(COMPOSE_EMAIL_ACL_PATCH_KEY, "1");
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(AUTOMATIONS_ACL_PATCH_KEY)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(AUTOMATIONS_ACL_PATCH_KEY)) {
     for (const role of Object.keys(roleAclCache)) {
       const allowed = new Set(getRoleModules(role as RoleKey));
       const map = { ...(roleAclCache[role] ?? {}) };
@@ -201,7 +194,7 @@ export function getRoleAcl(): Record<RoleKey, MenuAclMap> {
       roleAclCache[role] = isSuperAdminRole(role) ? map : stripPlatformMenus(map);
     }
     writeJson(ROLE_ACL_KEY, roleAclCache);
-    window.localStorage.setItem(AUTOMATIONS_ACL_PATCH_KEY, "1");
+    savePersisted(AUTOMATIONS_ACL_PATCH_KEY, "1");
   }
   return roleAclCache;
 }

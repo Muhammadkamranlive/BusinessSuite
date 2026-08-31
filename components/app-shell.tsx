@@ -13,13 +13,13 @@ import {
   type ModuleKey
 } from "@/lib/permissions";
 import { isSuperAdminRole } from "@/lib/platform-access";
-import { findAccountByEmail } from "@/lib/auth/public-auth";
+import { findAccountByEmail, hydrateAuthFromSession } from "@/lib/auth/public-auth";
 import { hydrateEmployeeLogins } from "@/lib/auth/provision-login";
 import { clearDemoSession, getStoredTenantId, getStoredUserEmail, setDemoSession } from "@/lib/auth/session";
 import { menusMatchingPath } from "@/lib/menu-registry";
 import { canMenu, canViewModule } from "@/modules/admin/services/acl.store";
 import { hydrateRoles } from "@/modules/admin/services/roles.store";
-import { listAdminTenants, findAdminUserByEmail, listMembershipsByEmail } from "@/modules/admin/services/admin.store";
+import { hydrateAdminUsersFromServer, listAdminTenants, findAdminUserByEmail, listMembershipsByEmail } from "@/modules/admin/services/admin.store";
 import { applyDesignTokens, fetchDesignTokens } from "@/lib/design-tokens";
 import { useProductBrand } from "@/components/common/use-product-brand";
 import type { ProductBrand } from "@/lib/product-brand";
@@ -74,71 +74,79 @@ export function AppShell({
       if (!cancelled) applyDesignTokens(tokens);
     });
     hydrateRoles();
-    const storedUser = getStoredUserEmail();
-    const storedTenant = getStoredTenantId();
-    if (matchesStoredSession(storedUser, storedTenant)) {
-      const cached = getAppSessionBootstrap();
-      if (cached) {
-        setUserEmail(cached.userEmail);
-        setTenantId(cached.tenantId);
-        setTenantOptions(cached.tenantOptions);
-        setHydrated(true);
-        return () => {
-          cancelled = true;
-        };
+
+    async function bootSession() {
+      await hydrateAuthFromSession();
+      const storedUser = getStoredUserEmail();
+      const storedTenant = getStoredTenantId();
+      if (cancelled) return;
+
+      if (matchesStoredSession(storedUser, storedTenant)) {
+        const cached = getAppSessionBootstrap();
+        if (cached) {
+          setUserEmail(cached.userEmail);
+          setTenantId(cached.tenantId);
+          setTenantOptions(cached.tenantOptions);
+          setHydrated(true);
+          if (storedTenant) void hydrateAdminUsersFromServer(storedTenant);
+          return;
+        }
       }
+
+      const account = storedUser ? findAccountByEmail(storedUser) : null;
+      if (!storedUser || !account) {
+        router.replace("/login");
+        return;
+      }
+      if (storedTenant) await hydrateAdminUsersFromServer(storedTenant);
+      setUserEmail(storedUser);
+      const adminTenants = listAdminTenants().map((t) => ({
+        id: t.id,
+        name: t.name,
+        industry: t.industry,
+        region: t.region,
+        plan: t.plan
+      }));
+      const byId = new Map<string, (typeof adminTenants)[number]>();
+      for (const row of adminTenants.length > 0 ? adminTenants : seedTenants) {
+        if (!byId.has(row.id)) byId.set(row.id, row);
+      }
+      const merged = [...byId.values()];
+      const memberships = storedUser
+        ? listMembershipsByEmail(storedUser).filter((m) => m.status !== "blocked")
+        : [];
+      const allowedIds = new Set(memberships.map((m) => m.tenantId));
+      if (account?.tenantId) allowedIds.add(account.tenantId);
+      const scoped = isSuperAdminRole(account?.role ?? "") ? merged : merged.filter((t) => allowedIds.has(t.id));
+      const options = scoped.length > 0 ? scoped : merged;
+      setTenantOptions(options);
+      if (storedTenant && options.some((tenant) => tenant.id === storedTenant)) setTenantId(storedTenant);
+      else if (memberships[0] && options.some((t) => t.id === memberships[0].tenantId)) setTenantId(memberships[0].tenantId);
+      else if (account?.tenantId && options.some((t) => t.id === account.tenantId)) setTenantId(account.tenantId);
+      const effectiveTenant =
+        (storedTenant && options.some((t) => t.id === storedTenant) && storedTenant) ||
+        (memberships[0] && options.some((t) => t.id === memberships[0].tenantId) && memberships[0].tenantId) ||
+        (account?.tenantId && options.some((t) => t.id === account.tenantId) && account.tenantId) ||
+        options[0]?.id ||
+        seedTenants[0].id;
+      hydrateEmployeeLogins(effectiveTenant);
+      if (!isTenantActivated(effectiveTenant)) {
+        router.replace("/activate");
+        return;
+      }
+      setAppSessionBootstrap({
+        userEmail: storedUser,
+        tenantId: effectiveTenant,
+        tenantOptions: options
+      });
+      setHydrated(true);
+      setSyncingRemote(true);
+      syncTenantFromRemoteInBackground(effectiveTenant, () => {
+        if (!cancelled) setSyncingRemote(false);
+      });
     }
-    const account = storedUser ? findAccountByEmail(storedUser) : null;
-    const knownDemo = storedUser ? demoUsers.some((user) => user.email === storedUser) : false;
-    if (!storedUser || (!account && !knownDemo)) {
-      router.replace("/login");
-      return;
-    }
-    setUserEmail(storedUser);
-    const adminTenants = listAdminTenants().map((t) => ({
-      id: t.id,
-      name: t.name,
-      industry: t.industry,
-      region: t.region,
-      plan: t.plan
-    }));
-    const byId = new Map<string, (typeof adminTenants)[number]>();
-    for (const row of adminTenants.length > 0 ? adminTenants : seedTenants) {
-      if (!byId.has(row.id)) byId.set(row.id, row);
-    }
-    const merged = [...byId.values()];
-    const memberships = storedUser
-      ? listMembershipsByEmail(storedUser).filter((m) => m.status !== "blocked")
-      : [];
-    const allowedIds = new Set(memberships.map((m) => m.tenantId));
-    if (account?.tenantId) allowedIds.add(account.tenantId);
-    const scoped = isSuperAdminRole(account?.role ?? "") ? merged : merged.filter((t) => allowedIds.has(t.id));
-    const options = scoped.length > 0 ? scoped : merged;
-    setTenantOptions(options);
-    if (storedTenant && options.some((tenant) => tenant.id === storedTenant)) setTenantId(storedTenant);
-    else if (memberships[0] && options.some((t) => t.id === memberships[0].tenantId)) setTenantId(memberships[0].tenantId);
-    else if (account?.tenantId && options.some((t) => t.id === account.tenantId)) setTenantId(account.tenantId);
-    const effectiveTenant =
-      (storedTenant && options.some((t) => t.id === storedTenant) && storedTenant) ||
-      (memberships[0] && options.some((t) => t.id === memberships[0].tenantId) && memberships[0].tenantId) ||
-      (account?.tenantId && options.some((t) => t.id === account.tenantId) && account.tenantId) ||
-      options[0]?.id ||
-      seedTenants[0].id;
-    hydrateEmployeeLogins(effectiveTenant);
-    if (!isTenantActivated(effectiveTenant)) {
-      router.replace("/activate");
-      return;
-    }
-    setAppSessionBootstrap({
-      userEmail: storedUser,
-      tenantId: effectiveTenant,
-      tenantOptions: options
-    });
-    setHydrated(true);
-    setSyncingRemote(true);
-    syncTenantFromRemoteInBackground(effectiveTenant, () => {
-      if (!cancelled) setSyncingRemote(false);
-    });
+
+    void bootSession();
     return () => {
       cancelled = true;
     };

@@ -1,3 +1,5 @@
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
+
 export type CmsStatus = "draft" | "published";
 
 export type BlogPost = {
@@ -65,21 +67,17 @@ function slugify(value: string) {
 
 function read<T>(key: string, fallback: T): T {
   if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) {
-      window.localStorage.setItem(key, JSON.stringify(fallback));
-      return fallback;
-    }
-    return JSON.parse(raw) as T;
-  } catch {
+  const stored = loadPersisted<T>(key);
+  if (stored == null) {
+    savePersisted(key, fallback);
     return fallback;
   }
+  return stored;
 }
 
 function write(key: string, value: unknown) {
   if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(value));
+  savePersisted(key, value);
 }
 
 const defaultBlogs: BlogPost[] = [
@@ -497,7 +495,7 @@ export const publicPageRoutes: Record<string, { menuSlug: string; pageSlug: stri
 /** Merge production legal/company pages into existing CMS without wiping custom admin pages. */
 export function ensureProductionSiteContent() {
   if (typeof window === "undefined") return;
-  if (window.localStorage.getItem(SITE_SEED_KEY) === "1") return;
+  if (loadPersisted<string>(SITE_SEED_KEY) === "1") return;
 
   const menus = read<CmsMenu[]>(MENUS_KEY, defaultMenus);
   for (const seed of defaultMenus) {
@@ -527,7 +525,7 @@ export function ensureProductionSiteContent() {
   }
   write(BLOGS_KEY, blogs);
 
-  window.localStorage.setItem(SITE_SEED_KEY, "1");
+  savePersisted(SITE_SEED_KEY, "1");
 }
 
 export { slugify };

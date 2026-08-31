@@ -21,6 +21,7 @@ import {
   saveUserMenuRights,
   type MenuRightsMap
 } from "@/modules/admin/services/acl.store";
+import { removePersisted } from "@/modules/core/services/local-persist";
 import { applyDesignTokens, defaultDesignTokens, fetchDesignTokens, resetDesignTokens, saveDesignTokens, type DesignTokens } from "@/lib/design-tokens";
 import { resetProductBrand, saveProductBrand, type ProductBrand } from "@/lib/product-brand";
 import { useProductBrand } from "@/components/common/use-product-brand";
@@ -255,8 +256,8 @@ export default function AccessControlPage() {
           onClick={() => {
             resetAclCaches();
             if (typeof window !== "undefined") {
-              window.localStorage.removeItem("businesssuite:acl:roles");
-              window.localStorage.removeItem("businesssuite:acl:users");
+              removePersisted("businesssuite:acl:roles");
+              removePersisted("businesssuite:acl:users");
             }
             setTick((n) => n + 1);
           }}

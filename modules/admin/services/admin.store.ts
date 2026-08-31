@@ -1,9 +1,10 @@
 import { demoUsers, getRoleLabel, type DemoUser, type RoleKey } from "@/lib/permissions";
-import { ensureAccount, findAccountByEmail, setAccountPassword } from "@/lib/auth/public-auth";
+import { cacheAccountFromProfile, findAccountByEmail, setAccountPassword } from "@/lib/auth/public-auth";
 import { tenants as seedTenants } from "@/lib/demo-data";
 import { notifyUserCredentials } from "@/lib/email/triggers";
 import { logAction, getAuditLogs } from "@/modules/core/services/audit.service";
 import { createNotification, getUserNotifications, markAsRead } from "@/modules/core/services/notification.service";
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 
 export type AdminUserStatus = "active" | "invited" | "blocked";
 
@@ -63,19 +64,11 @@ function id() {
 }
 
 function read<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (!raw) return fallback;
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
+  return loadPersisted<T>(key) ?? fallback;
 }
 
 function write(key: string, value: unknown) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(key, JSON.stringify(value));
+  savePersisted(key, value);
 }
 
 const defaultUsers: AdminUser[] = demoUsers.map((u, index) => ({
@@ -170,7 +163,49 @@ export function ensureAdminDirectoryUser(input: {
   return user;
 }
 
-export function inviteUser(input: {
+export async function hydrateAdminUsersFromServer(tenantId: string) {
+  try {
+    const res = await fetch(`/api/admin/users?tenantId=${encodeURIComponent(tenantId)}`);
+    if (!res.ok) return listAdminUsers(tenantId);
+    const data = (await res.json()) as {
+      ok?: boolean;
+      users?: Array<{
+        id: string;
+        name: string;
+        email: string;
+        role: RoleKey;
+        title: string;
+        tenantId: string;
+        status: AdminUserStatus;
+      }>;
+    };
+    if (!data.ok || !data.users) return listAdminUsers(tenantId);
+
+    const users = read<AdminUser[]>(USERS_KEY, defaultUsers);
+    const byKey = new Map(users.map((u) => [`${u.tenantId}:${u.email.toLowerCase()}`, u]));
+    for (const row of data.users) {
+      const key = `${row.tenantId}:${row.email.toLowerCase()}`;
+      byKey.set(key, {
+        id: row.id,
+        name: row.name,
+        email: row.email,
+        role: row.role,
+        title: row.title,
+        status: row.status,
+        tenantId: row.tenantId,
+        lastLoginAt: byKey.get(key)?.lastLoginAt
+      });
+      cacheAccountFromProfile(row);
+    }
+    const merged = Array.from(byKey.values());
+    write(USERS_KEY, merged);
+    return merged.filter((u) => u.tenantId === tenantId);
+  } catch {
+    return listAdminUsers(tenantId);
+  }
+}
+
+export async function inviteUser(input: {
   name: string;
   email: string;
   role: RoleKey;
@@ -183,46 +218,54 @@ export function inviteUser(input: {
     throw new Error("Super Admin is the platform operator role. It is not assigned inside a company package.");
   }
   const email = input.email.trim().toLowerCase();
-  const users = listAdminUsers();
-  if (users.some((u) => u.email.toLowerCase() === email && u.tenantId === input.tenantId)) {
-    throw new Error("This email is already a user in this company.");
+  const password = (input.password ?? "").trim();
+  if (password.length < 8) {
+    throw new Error("Set a password (at least 8 characters) so this person can sign in.");
   }
-  const existingLogin = findAccountByEmail(email);
-  if (!existingLogin) {
-    const password = (input.password ?? "").trim();
-    if (password.length < 8) {
-      throw new Error("Set a password (at least 8 characters) so this person can sign in.");
-    }
+
+  const res = await fetch("/api/admin/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      name: input.name,
+      email,
+      role: input.role,
+      title: input.title,
+      tenantId: input.tenantId,
+      password
+    })
+  });
+  const data = (await res.json()) as {
+    ok?: boolean;
+    error?: string;
+    user?: AdminUser;
+    existingLogin?: boolean;
+    password?: string | null;
+  };
+
+  if (!res.ok || !data.ok || !data.user) {
+    throw new Error(data.error ?? "Invite failed");
   }
+
   const user: AdminUser = {
-    id: id(),
-    name: input.name,
-    email,
-    role: input.role,
-    title: input.title || getRoleLabel(input.role),
-    status: "active",
-    tenantId: input.tenantId,
+    ...data.user,
     invitedAt: now(),
     lastLoginAt: undefined
   };
-  users.unshift(user);
-  write(USERS_KEY, users);
-  ensureAccount({
-    name: user.name,
-    email: user.email,
-    role: user.role,
-    tenantId: user.tenantId,
-    title: user.title,
-    password: existingLogin ? undefined : input.password,
-    status: "active"
-  });
+
+  const users = listAdminUsers();
+  const filtered = users.filter((u) => !(u.email.toLowerCase() === email && u.tenantId === input.tenantId));
+  filtered.unshift(user);
+  write(USERS_KEY, filtered);
+  cacheAccountFromProfile(user);
+
   logAction({
     tenantId: input.tenantId,
     module: "admin",
     action: "create",
     entityName: "user",
     entityId: user.id,
-    newData: { email: user.email, role: user.role, status: user.status, existingLogin: Boolean(existingLogin) }
+    newData: { email: user.email, role: user.role, status: user.status, existingLogin: Boolean(data.existingLogin) }
   });
   createNotification({
     tenantId: input.tenantId,
@@ -231,7 +274,8 @@ export function inviteUser(input: {
     type: "success",
     targetModule: "settings"
   });
-  const issuedPassword = existingLogin ? null : (input.password ?? "").trim();
+
+  const issuedPassword = data.existingLogin ? null : password;
   if (issuedPassword) {
     const settings = getSystemSettings();
     notifyUserCredentials({
@@ -244,9 +288,10 @@ export function inviteUser(input: {
       roleLabel: getRoleLabel(user.role)
     });
   }
+
   return {
     user,
-    existingLogin: Boolean(existingLogin),
+    existingLogin: Boolean(data.existingLogin),
     password: issuedPassword
   };
 }

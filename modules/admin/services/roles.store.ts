@@ -125,7 +125,7 @@ export function hydrateRoles() {
   } else {
     roles = seedRoles();
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(WORLD_CRUD_MODULES_PATCH)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(WORLD_CRUD_MODULES_PATCH)) {
     for (const row of roles) {
       const defaults = defaultPermissionMatrix[row.key] ?? [];
       const have = new Set(row.modules);
@@ -135,7 +135,7 @@ export function hydrateRoles() {
         syncRoleAclModules(row.key, row.modules);
       }
     }
-    window.localStorage.setItem(WORLD_CRUD_MODULES_PATCH, "1");
+    savePersisted(WORLD_CRUD_MODULES_PATCH, "1");
   }
   persist();
   bindTrashRestore(collection);

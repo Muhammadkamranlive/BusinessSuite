@@ -1,27 +1,37 @@
 export const userStorageKey = "businesssuite:user";
 export const tenantStorageKey = "businesssuite:tenant";
 export const sessionCookieName = "businesssuite_session";
+export const tenantCookieName = "businesssuite_tenant";
 
+function readCookie(name: string) {
+  if (typeof document === "undefined") return null;
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}=([^;]*)`));
+  return match ? decodeURIComponent(match[1]) : null;
+}
+
+function writeCookie(name: string, value: string, maxAgeSeconds: number) {
+  if (typeof document === "undefined") return;
+  document.cookie = `${name}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}; SameSite=Lax`;
+}
+
+const SESSION_MAX_AGE = 60 * 60 * 24 * 7;
+
+/** Set session cookies (mirrors server Set-Cookie on login). */
 export function setDemoSession(email: string, tenantId: string) {
-  if (typeof window === "undefined") return;
-  window.localStorage.setItem(userStorageKey, email);
-  window.localStorage.setItem(tenantStorageKey, tenantId);
-  document.cookie = `${sessionCookieName}=${encodeURIComponent(email)}; path=/; max-age=86400; SameSite=Lax`;
+  writeCookie(sessionCookieName, email, SESSION_MAX_AGE);
+  writeCookie(tenantCookieName, tenantId, SESSION_MAX_AGE);
 }
 
 export function clearDemoSession() {
-  if (typeof window === "undefined") return;
-  window.localStorage.removeItem(userStorageKey);
-  window.localStorage.removeItem(tenantStorageKey);
-  document.cookie = `${sessionCookieName}=; path=/; max-age=0; SameSite=Lax`;
+  writeCookie(sessionCookieName, "", 0);
+  writeCookie(tenantCookieName, "", 0);
+  void fetch("/api/auth/logout", { method: "POST" }).catch(() => undefined);
 }
 
 export function getStoredUserEmail() {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(userStorageKey);
+  return readCookie(sessionCookieName);
 }
 
 export function getStoredTenantId() {
-  if (typeof window === "undefined") return null;
-  return window.localStorage.getItem(tenantStorageKey);
+  return readCookie(tenantCookieName);
 }

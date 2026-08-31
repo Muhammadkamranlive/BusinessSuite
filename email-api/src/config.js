@@ -9,6 +9,10 @@ function normalizeAppPassword(value) {
     .replace(/\s+/g, "");
 }
 
+const defaultDataDir = process.env.VERCEL
+  ? "/tmp/email-api-data"
+  : path.join(__dirname, "..", "data");
+
 module.exports = {
   port: Number(process.env.PORT || 8787),
   apiKey: process.env.EMAIL_API_KEY || "",
@@ -21,5 +25,5 @@ module.exports = {
   mailFrom: String(process.env.MAIL_FROM || process.env.GMAIL_USER || "")
     .trim()
     .replace(/^["']|["']$/g, ""),
-  dataDir: process.env.EMAIL_DATA_DIR || path.join(__dirname, "..", "data")
+  dataDir: process.env.EMAIL_DATA_DIR || defaultDataDir
 };

@@ -15,6 +15,7 @@ import {
 import { deleteDocumentBlob, uploadDocumentFile } from "@/modules/documents/services/document-storage";
 import { createHrNotification, listEmployees } from "@/modules/hrm/services/hrm.store";
 import { tenants as demoTenants } from "@/lib/demo-data";
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 
 const STORAGE_KEY = "businesssuite:documents:v1";
 const DEMO_TENANT_SLUGS = demoTenants.map((t) => t.id);
@@ -156,7 +157,7 @@ function seedDemoDocumentsIfEmpty(tenantId: UUID) {
 function persist() {
   if (typeof window === "undefined") return;
   const snap: Snapshot = { version: 2, requirements, documents, assignments, history };
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snap));
+  savePersisted(STORAGE_KEY, snap);
 }
 
 function ensureHydrated() {
@@ -165,12 +166,12 @@ function ensureHydrated() {
   ensureSeeded();
   if (typeof window === "undefined") return;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = loadPersisted<Snapshot>(STORAGE_KEY);
     if (!raw) {
       persist();
       return;
     }
-    const snap = JSON.parse(raw) as Snapshot;
+    const snap = raw;
     if (snap.requirements?.length) requirements = snap.requirements;
     if (snap.documents?.length) documents = snap.documents;
     if (snap.assignments?.length) assignments = snap.assignments;

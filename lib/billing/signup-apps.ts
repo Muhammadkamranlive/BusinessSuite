@@ -4,6 +4,7 @@ import {
   type PlatformAppId
 } from "@/lib/billing/module-catalog";
 import type { ModuleKey } from "@/lib/permissions";
+import { loadPersisted, removePersisted, savePersisted } from "@/modules/core/services/local-persist";
 import { getPackageByCode, type PlanTier } from "@/modules/billing/services/subscriptions.store";
 
 export const SIGNUP_APPS_KEY = "businesssuite:signup-app-selection:v1";
@@ -48,15 +49,13 @@ export function buildSignupSelectionFromSearchParams(params: URLSearchParams): S
 
 export function persistSignupAppSelection(selection: SignupAppSelection) {
   if (typeof window === "undefined") return;
-  localStorage.setItem(SIGNUP_APPS_KEY, JSON.stringify(selection));
+  savePersisted(SIGNUP_APPS_KEY, selection);
 }
 
 export function readSignupAppSelection(): SignupAppSelection | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = localStorage.getItem(SIGNUP_APPS_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as SignupAppSelection;
+    const parsed = loadPersisted<SignupAppSelection>(SIGNUP_APPS_KEY);
     if (!parsed?.tier || !Array.isArray(parsed.modules)) return null;
     parsed.platform_apps = resolvePlatformApps(parsed.platform_apps ?? []);
     return parsed;
@@ -67,7 +66,7 @@ export function readSignupAppSelection(): SignupAppSelection | null {
 
 export function clearSignupAppSelection() {
   if (typeof window === "undefined") return;
-  localStorage.removeItem(SIGNUP_APPS_KEY);
+  removePersisted(SIGNUP_APPS_KEY);
 }
 
 export function signupUrlForSelection(selection: SignupAppSelection) {

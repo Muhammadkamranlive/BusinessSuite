@@ -227,7 +227,7 @@ function loadPackages(): SubscriptionPackage[] {
     savePersisted(PACKAGES_KEY, seeded);
     return seeded;
   }
-  if (typeof window !== "undefined" && !window.localStorage.getItem(PACKAGES_CATALOG_PATCH)) {
+  if (typeof window !== "undefined" && !loadPersisted<string>(PACKAGES_CATALOG_PATCH)) {
     const seeded = defaultPackages();
     const next = stored.map((row) => {
       const seed = seeded.find((s) => s.code === row.code);
@@ -236,7 +236,7 @@ function loadPackages(): SubscriptionPackage[] {
       return { ...row, modules, tagline: seed.tagline, description: seed.description, features: seed.features };
     });
     savePersisted(PACKAGES_KEY, next);
-    window.localStorage.setItem(PACKAGES_CATALOG_PATCH, "1");
+    savePersisted(PACKAGES_CATALOG_PATCH, "1");
     return next;
   }
   return stored;

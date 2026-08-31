@@ -71,7 +71,53 @@ Auth (optional): header `x-email-api-key: <EMAIL_API_KEY>`
 - `survey.assigned`
 - `generic.notification`
 
-## Firebase deploy
+## Deploy on Vercel (recommended)
+
+The Email API runs as a **separate Vercel project** (`email-api/`) — not Firebase.
+
+```bash
+cd email-api
+npx vercel deploy --prod --yes
+```
+
+Production URL (example): `https://email-api-olive.vercel.app`
+
+### Vercel environment variables
+
+In **Vercel → email-api → Settings → Environment Variables** (Production):
+
+| Variable | Description |
+|----------|-------------|
+| `GMAIL_USER` | Sender Gmail address |
+| `GMAIL_APP_PASSWORD` | Google App Password (16 chars) |
+| `MAIL_FROM` | Usually same as GMAIL_USER |
+| `MAIL_FROM_NAME` | e.g. BusinessSuite ERP |
+| `EMAIL_API_KEY` | Shared secret with ERP |
+| `EMAIL_DRY_RUN` | `false` for live send |
+
+Then **Redeploy** the email-api project.
+
+### Wire ERP (main Vercel app)
+
+On **businesssuite-erp-cloud** → Environment Variables:
+
+```env
+EMAIL_API_URL=https://email-api-olive.vercel.app
+EMAIL_API_KEY=<same as email-api project>
+```
+
+Redeploy ERP: `npx vercel deploy --prod --yes`
+
+Health checks:
+
+```bash
+curl https://email-api-olive.vercel.app/health
+curl https://businesssuite-erp-cloud.vercel.app/api/email/health
+```
+
+**Note:** Template edits on Vercel use `/tmp` storage (ephemeral). Built-in system templates always seed on cold start. For durable custom templates, use the ERP **Email templates** admin or deploy with a persistent disk host instead.
+
+## Firebase deploy (optional)
 
 ```bash
 cd email-api

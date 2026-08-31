@@ -6,6 +6,7 @@ import { remoteHrmHasRows } from "@/modules/ops/services/ops-merge";
 import { isClientDatabasePrimary } from "@/lib/database-mode";
 import { notifyLeaveDecision, notifyLeaveSubmitted } from "@/lib/email/triggers";
 import { fetchJson } from "@/lib/sync-fetch";
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import { getSystemSettings } from "@/modules/admin/services/admin.store";
 import type {
   Department,
@@ -86,7 +87,7 @@ function seed<T extends Record<string, unknown>>(tenantId: UUID, data: T): T & T
 }
 
 /* =========================================================================
- * In-memory collections (hydrated from / persisted to localStorage)
+ * In-memory collections (hydrated from memory cache + Supabase sync)
  * ========================================================================= */
 
 const departments: Department[] = [];
@@ -210,7 +211,7 @@ function queueRemoteSync() {
 function persist() {
   if (typeof window === "undefined") return;
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(buildSnapshot()));
+    savePersisted(STORAGE_KEY, buildSnapshot());
     queueRemoteSync();
   } catch {
     /* storage may be unavailable (quota, private mode) - fail silently */
@@ -240,7 +241,7 @@ export async function pullHrmFromSupabase(tenantId?: string) {
   }
   mergeHrmTenantSnapshot(snapshot, tenantId);
   if (typeof window !== "undefined") {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(buildSnapshot()));
+    savePersisted(STORAGE_KEY, buildSnapshot());
   }
   return buildSnapshot();
 }
@@ -349,15 +350,14 @@ function replaceAll<T>(target: T[], source: T[] | undefined) {
 
 let hydrated = false;
 
-/** Loads persisted state on first client access; seeds localStorage on first run. SSR-safe. */
+/** Loads persisted state on first client access. SSR-safe. */
 function ensureHydrated() {
   if (hydrated) return;
   hydrated = true;
   if (typeof window === "undefined") return;
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const snapshot = JSON.parse(raw) as Partial<HrmSnapshot>;
+    const snapshot = loadPersisted<Partial<HrmSnapshot>>(STORAGE_KEY);
+    if (snapshot) {
       if (snapshot && snapshot.version === STORAGE_VERSION) {
         replaceAll(departments, snapshot.departments);
         replaceAll(designations, snapshot.designations);

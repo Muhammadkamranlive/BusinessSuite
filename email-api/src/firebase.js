@@ -9,7 +9,7 @@
  * The deployed URL becomes EMAIL_API_URL in the Next.js app.
  */
 const { onRequest } = require("firebase-functions/v2/https");
-const { createApp } = require("./app");
+const { createApp } = require("./express-app");
 
 const app = createApp();
 

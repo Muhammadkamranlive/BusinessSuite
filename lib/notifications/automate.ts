@@ -10,12 +10,8 @@ import { logAction } from "@/modules/core/services/audit.service";
 import { createNotification } from "@/modules/core/services/notification.service";
 
 function companyName() {
-  if (typeof window === "undefined") return "BusinessSuite";
   try {
-    const raw = window.localStorage.getItem("businesssuite:admin:settings");
-    if (!raw) return "BusinessSuite";
-    const parsed = JSON.parse(raw) as { companyName?: string };
-    return parsed.companyName?.trim() || "BusinessSuite";
+    return getSystemSettings().companyName?.trim() || "BusinessSuite";
   } catch {
     return "BusinessSuite";
   }

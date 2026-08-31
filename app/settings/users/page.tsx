@@ -93,14 +93,14 @@ export default function UsersPage() {
     }
   }
 
-  function doInvite() {
+  async function doInvite() {
     setError("");
     try {
       if (!existingLogin && form.password !== form.confirm) {
         setError("Passwords do not match.");
         return;
       }
-      const result = inviteUser({
+      const result = await inviteUser({
         name: form.name.trim(),
         email: form.email.trim(),
         role: form.role,

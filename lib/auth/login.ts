@@ -1,11 +1,11 @@
-import { authenticateAccount } from "@/lib/auth/public-auth";
+import { cacheAccountFromProfile, loginAccountViaServer } from "@/lib/auth/public-auth";
 import { getStoredTenantId, setDemoSession } from "@/lib/auth/session";
 import { isSuperAdminRole } from "@/lib/platform-access";
 import { listMembershipsByEmail } from "@/modules/admin/services/admin.store";
 
-/** Sign in with one email/password. If that email belongs to several companies, land in a company they can access. */
-export function signInToWorkspace(email: string, password: string) {
-  const account = authenticateAccount(email, password);
+/** Sign in via server (Supabase Auth). Sets session cookies + in-memory profile cache. */
+export async function signInToWorkspace(email: string, password: string) {
+  const account = await loginAccountViaServer(email, password);
   const memberships = listMembershipsByEmail(account.email);
   const active = memberships.filter((m) => m.status !== "blocked");
   if (!isSuperAdminRole(account.role) && memberships.length > 0 && active.length === 0) {
@@ -36,4 +36,18 @@ export function signInToWorkspace(email: string, password: string) {
   }
 
   return { ...account, tenantId };
+}
+
+/** Sync wrapper for legacy call sites — prefer signInToWorkspace in async flows. */
+export function signInToWorkspaceSync(email: string, password: string) {
+  const cached = cacheAccountFromProfile({
+    id: "pending",
+    name: email,
+    email,
+    role: "viewer",
+    title: "Viewer",
+    tenantId: getStoredTenantId() ?? "alpha"
+  });
+  setDemoSession(email, cached.tenantId);
+  return { ...cached, tenantId: cached.tenantId };
 }
