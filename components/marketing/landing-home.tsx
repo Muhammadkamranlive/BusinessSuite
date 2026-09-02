@@ -30,7 +30,7 @@ export function LandingHome() {
   const [interval, setInterval] = useState<BillingInterval>("year");
   const shelf = [
     productModules.find((m) => m.slug === "crm"),
-    productModules.find((m) => m.slug === "healthcare"),
+    productModules.find((m) => m.slug === "sales"),
     productModules.find((m) => m.slug === "finance")
   ].filter((m): m is NonNullable<typeof m> => Boolean(m));
 
@@ -69,8 +69,8 @@ export function LandingHome() {
               15 apps. Click one — the laptop shows that screen.
             </h2>
             <p className="mkt-muted mt-4 text-[15px] leading-7">
-              13 business modules plus Email Engine and Rule Engine, one login. Each detail page lists the menus and
-              the role-to-work flow — no vaporware screenshots.
+              13 business modules plus Email Engine and Rule Engine, one login. Screenshots are from the live product —
+              click a module and the laptop updates to that app.
             </p>
           </Reveal>
           <div className="mt-10">

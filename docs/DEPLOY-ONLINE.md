@@ -5,7 +5,7 @@ Two services go live:
 | Service | Host | What it runs |
 |---------|------|----------------|
 | **ERP app + API routes** | [Vercel](https://vercel.com) | Next.js UI + `/api/*` (billing, automation, sync, email proxy) |
-| **Email API** | [Render](https://render.com) (or Firebase / Railway) | Express + Nodemailer (Gmail) — templates & send |
+| **Email API** | [Vercel](https://vercel.com) — **separate Git repo** | Express + Nodemailer — see [BusinessSuite-Email-API](https://github.com/Muhammadkamranlive/BusinessSuite-Email-API) |
 
 Postgres lives on your cloud database project (migrations in `supabase/migrations/`).
 
@@ -47,25 +47,26 @@ npm run db:check
 
 ---
 
-## 2. Email API (Render — recommended)
+## 2. Email API (separate repository + Vercel)
 
-The Email API is a standalone Express app in `email-api/`. Vercel serverless is **not** a good fit for long-running SMTP; use Render with the included Dockerfile.
+The Email API is **not** in this monorepo. It lives in:
 
-### Option A — Render Blueprint
+**https://github.com/Muhammadkamranlive/BusinessSuite-Email-API**
 
-1. Push this repo to GitHub.
-2. [Render Dashboard](https://dashboard.render.com) → **New** → **Blueprint**.
-3. Connect the repo — Render reads `render.yaml` at the repo root.
-4. Set secrets when prompted:
-   - `GMAIL_USER` — sender Gmail address
-   - `GMAIL_APP_PASSWORD` — Google App Password (16 chars)
-   - `MAIL_FROM` — usually same as GMAIL_USER
-5. Deploy. Copy the service URL, e.g. `https://businesssuite-email-api.onrender.com`.
+Full steps: [docs/EMAIL-API-REPO.md](./EMAIL-API-REPO.md)
+
+### Deploy Email API on Vercel
+
+1. Create GitHub repo `BusinessSuite-Email-API` and push from `/Users/kamran/Documents/BusinessSuite-Email-API`.
+2. Vercel → project **email-api** → **Settings → Git** → connect **BusinessSuite-Email-API** (root `/`, not a subfolder).
+3. Disconnect this monorepo from the `email-api` Vercel project if it was linked before.
+4. Env vars: `GMAIL_USER`, `GMAIL_APP_PASSWORD`, `MAIL_FROM`, `EMAIL_API_KEY`, `EMAIL_DRY_RUN=false`.
+5. Deploy. Example URL: `https://email-api-olive.vercel.app`.
 
 ### Option B — Docker (Railway, Fly.io, VPS)
 
 ```bash
-cd email-api
+cd ../BusinessSuite-Email-API
 docker build -t businesssuite-email-api .
 docker run -p 8787:8787 \
   -e GMAIL_USER=you@gmail.com \
@@ -79,7 +80,7 @@ Health: `GET https://YOUR-HOST/health`
 
 ### Option C — Firebase Functions
 
-See `email-api/README.md` → `firebase deploy --only functions`.
+See [BusinessSuite-Email-API](https://github.com/Muhammadkamranlive/BusinessSuite-Email-API) README → Firebase deploy.
 
 ### Point ERP at Email API
 

@@ -1,7 +1,7 @@
 import { DEMO_PASSWORD } from "@/lib/auth/constants";
 import { roleKeyFromName, roleNameFromKey } from "@/lib/auth/server/role-map";
 import type { RoleKey } from "@/lib/permissions";
-import { getSupabaseAdminClient, hasSecretKey } from "@/lib/supabase/server";
+import { getSupabaseAdminClient, getSupabaseAuthClient, hasSecretKey } from "@/lib/supabase/server";
 import { toDbTenantId, toUiTenantId } from "@/lib/tenants/ids";
 
 export type ServerUserProfile = {
@@ -66,8 +66,8 @@ export async function ensureAuthUser(email: string, password: string, name: stri
 }
 
 export async function signInWithEmailPassword(email: string, password: string) {
-  const admin = getSupabaseAdminClient();
-  const { data, error } = await admin.auth.signInWithPassword({ email, password });
+  const authClient = getSupabaseAuthClient();
+  const { data, error } = await authClient.auth.signInWithPassword({ email, password });
   if (error) throw new Error(error.message);
   return data;
 }

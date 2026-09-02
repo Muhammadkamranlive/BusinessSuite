@@ -4,7 +4,7 @@ import { Reveal } from "@/components/marketing/reveal";
 import { StatCounter } from "@/components/marketing/stat-counter";
 
 const stats = [
-  { value: 12, suffix: "", label: "Modules in one login", note: "CRM to hospital HMS" },
+  { value: 15, suffix: "", label: "Pay-per apps", note: "13 business + 2 platform" },
   { value: 180, suffix: "+", label: "Screens & registers", note: "All searchable via ⌘K" },
   { value: 57, suffix: "", label: "Master catalogs", note: "Banks to lab tests" },
   { value: 4, suffix: "", label: "Deployment models", note: "Cloud · VPS · self-hosted · intranet" }

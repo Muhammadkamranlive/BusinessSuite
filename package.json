@@ -18,8 +18,8 @@
     "db:repair": "supabase migration repair --status applied",
     "db:seed:verify": "node scripts/verify-demo-seed.mjs",
     "deploy:check": "node scripts/deploy-preflight.mjs",
-    "email:dev": "npm run dev --prefix email-api",
-    "email:install": "npm install --prefix email-api"
+    "email:dev": "npm run dev --prefix ../BusinessSuite-Email-API",
+    "email:install": "npm install --prefix ../BusinessSuite-Email-API"
   },
   "dependencies": {
     "@supabase/supabase-js": "latest",

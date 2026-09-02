@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { Bell, CalendarClock, Mail, ShieldCheck, Workflow, Zap } from "lucide-react";
+import { LaptopFrame } from "@/components/marketing/screenshot-frame";
 import { MktCta } from "@/components/marketing/mkt-button";
 import { Reveal } from "@/components/marketing/reveal";
+import { erpScreenshots } from "@/lib/marketing-media";
 
 const capabilities = [
   {
@@ -58,6 +60,14 @@ export function RuleEngineShowcase() {
               Email Engine & templates
             </MktCta>
           </div>
+        </Reveal>
+
+        <Reveal delay={80} className="mx-auto mt-10 max-w-4xl">
+          <LaptopFrame
+            src={erpScreenshots.crmWorkflow}
+            alt="Rule Engine and process flow — when→then automations across CRM, sales, HRM, and finance"
+            hero
+          />
         </Reveal>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

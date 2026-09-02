@@ -245,7 +245,7 @@ export default function EmailTemplatesPage() {
           const dryRun = Boolean((res.result as { dryRun?: boolean } | undefined)?.dryRun);
           setStatus(
             dryRun
-              ? `Dry-run only — no real email sent to ${testTo.trim()}. Set EMAIL_DRY_RUN=false in email-api/.env and restart the email API.`
+              ? `Dry-run only — no real email sent to ${testTo.trim()}. Set EMAIL_DRY_RUN=false in the Email API repo (.env) and restart it.`
               : `Email sent to ${testTo.trim()}. Check that inbox (and spam).`
           );
         })();
@@ -332,7 +332,7 @@ export default function EmailTemplatesPage() {
           </div>
           <div className="max-h-[70vh] space-y-2 overflow-y-auto">
             {visible.length === 0 ? (
-              <p className="p-4 text-center text-sm text-slate-500">No templates. Start the email API (`cd email-api && npm run dev`).</p>
+              <p className="p-4 text-center text-sm text-slate-500">No templates. Start the Email API (`npm run email:dev` from ERP root, or run the BusinessSuite-Email-API repo).</p>
             ) : (
               visible.map((t) => (
                 <button

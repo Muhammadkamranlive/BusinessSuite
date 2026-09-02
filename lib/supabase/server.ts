@@ -1,7 +1,6 @@
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let serverClient: SupabaseClient | null = null;
-let adminClient: SupabaseClient | null = null;
 
 function getUrl() {
   return process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -43,7 +42,7 @@ export function getSupabaseServerClient() {
   return serverClient;
 }
 
-/** Privileged client — requires SUPABASE_SECRET_KEY. Bypasses RLS. */
+/** Privileged client — requires SUPABASE_SECRET_KEY. Bypasses RLS. Fresh instance per call (serverless-safe). */
 export function getSupabaseAdminClient() {
   const url = getUrl();
   const key = getSecretKey();
@@ -54,16 +53,37 @@ export function getSupabaseAdminClient() {
     );
   }
 
-  if (!adminClient) {
-    adminClient = createClient(url, key, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false
-      }
-    });
+  if (!key.startsWith("sb_secret_") && !key.startsWith("eyJ")) {
+    throw new Error(
+      "SUPABASE_SECRET_KEY must be the Supabase secret (sb_secret_...) or service_role JWT — not the publishable/anon key."
+    );
   }
 
-  return adminClient;
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  });
+}
+
+/** Ephemeral client for password checks — never use for DB writes (RLS applies). */
+export function getSupabaseAuthClient() {
+  const url = getUrl();
+  const key = getPublishableKey();
+
+  if (!url || !key) {
+    throw new Error("Missing NEXT_PUBLIC_SUPABASE_URL or publishable key.");
+  }
+
+  return createClient(url, key, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  });
 }
 
 export function hasSecretKey() {

@@ -72,7 +72,7 @@ const cells = [
   {
     icon: LayoutDashboard,
     title: "Live dashboards & BI",
-    body: "Operational mix, funnel, AR/AP, attendance, and stock health — snapshots your leadership actually reads."
+    body: "Executive dashboard, CRM funnel, AR/AP, and data warehouse snapshots — screenshots from the live product, not mockups."
   }
 ];
 

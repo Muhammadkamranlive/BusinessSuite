@@ -11,3 +11,6 @@ _reference/HRM/
 _reference/hrm.zip
 _reference/HRM/.git/
 .vercel
+
+# Email API — separate repo (BusinessSuite-Email-API); do not commit here
+email-api/

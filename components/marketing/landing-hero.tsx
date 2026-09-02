@@ -10,6 +10,7 @@ import {
 import { MktCta } from "@/components/marketing/mkt-button";
 import { Reveal } from "@/components/marketing/reveal";
 import { StatCounter } from "@/components/marketing/stat-counter";
+import { erpScreenshots } from "@/lib/marketing-media";
 
 const heroStats = [
   { value: 13, suffix: "", label: "Business apps" },
@@ -88,8 +89,8 @@ export function LandingHero() {
               <div className="mkt-hero-scene-glow" aria-hidden />
               <div className="mkt-hero-shot">
                 <img
-                  src="/marketing/erpdashadmin.png"
-                  alt="BusinessSuite company dashboard — full view of live operational mix and CRM funnel"
+                  src={erpScreenshots.executiveDashboard}
+                  alt="BusinessSuite executive dashboard — live operational mix, CRM funnel, and company KPIs"
                 />
               </div>
             </div>

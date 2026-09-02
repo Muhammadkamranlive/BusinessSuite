@@ -1,6 +1,7 @@
 "use client";
 
 import { Star } from "lucide-react";
+import { erpScreenshots } from "@/lib/marketing-media";
 import { Reveal } from "@/components/marketing/reveal";
 
 const quotes = [
@@ -59,8 +60,8 @@ export function Testimonials() {
         </div>
         <div className="mkt-testimonial-photo">
           <img
-            src="/marketing/hero-team-diverse.png"
-            alt="Smiling team of operators from diverse industries who run their companies on BusinessSuite"
+            src={erpScreenshots.administration}
+            alt="BusinessSuite administration — company dashboard, users, and access control"
             width={1200}
             height={900}
           />

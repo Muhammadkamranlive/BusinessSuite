@@ -1,3 +1,5 @@
+import { moduleScreenshot } from "@/lib/marketing-media";
+
 export type ProductModule = {
   slug: string;
   title: string;
@@ -15,9 +17,9 @@ export const productModules: ProductModule[] = [
     title: "CRM",
     eyebrow: "Customers & pipeline",
     summary:
-      "See open leads, pipeline value, and follow-ups on one home screen. Score and convert leads, keep one primary contact per customer, and track campaign ROI and ticket SLA from the same login.",
-    image: "/marketing/ERPCRM.png",
-    heroCaption: "CRM home — open leads, pipeline, deals, campaigns, and tickets",
+      "Real CRM screens: lead queue, customer 360°, deal pipeline, and opportunity flow — all in one login. Score leads, log activities, run campaigns, and track ticket SLA without a side spreadsheet.",
+    image: moduleScreenshot.crm,
+    heroCaption: "CRM dashboard — open leads, customers, pipeline value, and follow-ups",
     highlights: [
       "Open leads, customers, and logged activities at a glance",
       "Opportunities with stage, probability, and required win/loss reasons",
@@ -42,9 +44,9 @@ export const productModules: ProductModule[] = [
     title: "Sales",
     eyebrow: "Quotes to cash",
     summary:
-      "Quotations, orders, dispatch, invoices, and collections in one path. Price lists and credit hold sit on the customer; receipts cannot over-allocate; credit notes and RMAs close the loop.",
-    image: "/marketing/erpsales.png",
-    heroCaption: "Sales home — quotations, AR outstanding, collection rate, recent invoices",
+      "Quotations, sales orders, delivery notes, invoices, receipts, and sales analytics on live screens. Credit hold, price lists, and tax from finance — quote to cash without leaving the suite.",
+    image: moduleScreenshot.sales,
+    heroCaption: "Sales — quotations, orders, invoices, and AR on one workspace",
     highlights: [
       "Quote → order → delivery note → invoice, with expiry on quotations",
       "List prices, customer price groups, and tax from the finance catalog",
@@ -70,7 +72,7 @@ export const productModules: ProductModule[] = [
     eyebrow: "Requisition to pay",
     summary:
       "Requisition, RFQ, purchase order, goods receipt, vendor bill, and payment — with a three-way match that blocks variance outside tolerance. Debit notes handle charge-backs without a side spreadsheet.",
-    image: "/marketing/purchase.png",
+    image: moduleScreenshot.purchases,
     heroCaption: "Procurement home — open POs, suppliers, inbound pipeline, and debit notes",
     highlights: [
       "Purchase requisitions that mark ordered once the PO is raised",
@@ -96,7 +98,7 @@ export const productModules: ProductModule[] = [
     eyebrow: "Stock that matches the warehouse",
     summary:
       "Active SKUs, warehouses, bins, batches, and serials on one board. Movements, transfers, and adjustments stay audited; low-stock alerts can feed a purchase requisition before the floor runs out.",
-    image: "/marketing/Erpinventroy.png",
+    image: moduleScreenshot.inventory,
     heroCaption: "Inventory home — SKUs, warehouses, movements, batches, and low-stock alerts",
     highlights: [
       "Products, categories, brands, and units of measure in one catalog",
@@ -125,9 +127,9 @@ export const productModules: ProductModule[] = [
     title: "Operations",
     eyebrow: "Plant, quality & contracts",
     summary:
-      "Bills of materials and work orders for assembly, maintenance and fleet for assets, incoming inspections for quality, plus customer/vendor contracts and warranty claims — in the same login as stock and purchasing.",
-    image: "/marketing/projects.png",
-    heroCaption: "Operations — BOM, work orders, maintenance, inspections, fleet, and contracts",
+      "BOM, work orders, maintenance, quality inspections, fleet, and contracts — plant operations on screens built for supervisors and planners, not whiteboards.",
+    image: moduleScreenshot.operations,
+    heroCaption: "Operations — BOM, work orders, maintenance, and quality",
     highlights: [
       "BOM and work orders so finished items are not built from a whiteboard",
       "Preventive and breakdown maintenance against equipment",
@@ -149,9 +151,9 @@ export const productModules: ProductModule[] = [
     title: "HRM",
     eyebrow: "People, attendance & payroll",
     summary:
-      "Hire into a position, run attendance and leave with balances, generate payroll that posts to the books, and recover employee loans on the same cycle. Self-service for the worker; inbox approvals for the manager.",
-    image: "/marketing/erphrm.png",
-    heroCaption: "HRM overview — headcount, attendance, leave, payroll, loans, and open candidates",
+      "Headcount, attendance, leave balances, payroll runs, loans, and recruitment on real HRM screens. Managers approve in inbox; employees use self-service on the same tenant.",
+    image: moduleScreenshot.hrm,
+    heroCaption: "HRM — employees, attendance, leave, payroll, and organization",
     highlights: [
       "Organization, jobs, positions, and hire that fills a vacant seat",
       "Shifts, holidays, attendance, and leave that skip weekends and holidays",
@@ -180,9 +182,9 @@ export const productModules: ProductModule[] = [
     title: "Healthcare",
     eyebrow: "Hospital & clinic (HMS)",
     summary:
-      "Patient registration, OPD and IPD, pharmacy, lab, radiology orders, EMR, OT, nursing, insurance claims, and quality checklists — hospital CRUD in the same ERP as finance and HR. Imaging viewers, SMS, and e-sign stay on the integrations list.",
-    image: "/marketing/erphrm.png",
-    heroCaption: "Healthcare — patients, appointments, OPD/IPD, pharmacy, lab, and claims",
+      "Hospital HMS on real screens: patients, OPD/IPD, pharmacy, lab, radiology, EMR, OT, nursing, and insurance claims — same login as finance and HR.",
+    image: moduleScreenshot.healthcare,
+    heroCaption: "Healthcare HMS — patients, wards, pharmacy, lab, and claims",
     highlights: [
       "MRN-style patients, doctors, appointments, OPD tokens, and ED triage",
       "Wards, beds, admissions, nursing notes, vitals, and duty rosters",
@@ -212,9 +214,9 @@ export const productModules: ProductModule[] = [
     title: "Finance",
     eyebrow: "Books you can show leadership",
     summary:
-      "Chart of accounts, journals, banks, cheques, reconciliation, fiscal years, budgets, and withholding — plus trial balance, P&L, balance sheet, and cash flow from the same posted ledger the other modules already wrote.",
-    image: "/marketing/erpfinance.png",
-    heroCaption: "Finance home — income vs expenses, P&L, ledger statements, and chart of accounts",
+      "Chart of accounts, journals, banks, cheques, budgets, and live P&L, balance sheet, and cash flow — finance screens that match what your accountant expects.",
+    image: moduleScreenshot.finance,
+    heroCaption: "Finance — ledger, P&L, balance sheet, and chart of accounts",
     highlights: [
       "Income, expenses, journals, and tax next to a live P&L",
       "Banks, accounts, PDC cheques, and statement reconciliation (file import later)",
@@ -248,7 +250,7 @@ export const productModules: ProductModule[] = [
     eyebrow: "Files with the record",
     summary:
       "Required uploads, a company library, and assignment to people — so contracts and IDs live with the employee or vendor, not in a shared drive.",
-    image: "/marketing/documentamangement.png",
+    image: moduleScreenshot.documents,
     heroCaption: "Document management — required uploads, library, and assignment",
     highlights: [
       "Required document types for the company",
@@ -263,9 +265,9 @@ export const productModules: ProductModule[] = [
     title: "Projects",
     eyebrow: "Delivery next to the books",
     summary:
-      "Projects, tasks, and timesheets in the same login as sales and payroll — submit and approve time so delivery hours are not trapped in a separate tool.",
-    image: "/marketing/projects.png",
-    heroCaption: "Project management — projects, tasks, and timesheets",
+      "Projects, tasks, timesheets, and project reports — delivery tracked next to sales and payroll, not in a separate tool.",
+    image: moduleScreenshot.projects,
+    heroCaption: "Projects — tasks, timesheets, and delivery tracking",
     highlights: [
       "Project list with progress the manager can see",
       "Tasks owned by the people doing the work",
@@ -279,9 +281,9 @@ export const productModules: ProductModule[] = [
     title: "Reports & BI",
     eyebrow: "One set of numbers",
     summary:
-      "Executive KPIs plus sales, inventory, HR, and finance analytics from the same company records. Save a snapshot when leadership needs a freeze of the week.",
-    image: "/marketing/wherehouse.png",
-    heroCaption: "Data warehouse / BI — executive KPIs and module analytics",
+      "Executive KPIs, sales and inventory analytics, custom reports, and saved snapshots — BI and data warehouse views from the same live company data.",
+    image: moduleScreenshot.reports,
+    heroCaption: "Reports & BI — executive KPIs, analytics, and snapshots",
     highlights: [
       "Executive KPIs on one board",
       "Sales, inventory, HR, and finance analytics from live modules",
@@ -303,9 +305,9 @@ export const productModules: ProductModule[] = [
     title: "Administration",
     eyebrow: "Company, users & rights",
     summary:
-      "Users, roles, and pay-per-app licensing, extra form fields per tenant, packages and billing, recycle bin, and a written list of third-party integrations to wire later.",
-    image: "/marketing/erpdashadmin.png",
-    heroCaption: "Company dashboard — live operational mix, CRM funnel, and tenant controls",
+      "Company dashboard, users, roles, pay-per-app licensing, access control, billing, extra fields, and audit — the admin screens that govern every tenant.",
+    image: moduleScreenshot.administration,
+    heroCaption: "Administration — company dashboard, users, roles, and billing",
     highlights: [
       "Live operational mix across invoices, payments, POs, and P&L",
       "Pay per app — license only the modules and platform engines you need",
@@ -332,9 +334,9 @@ export const productModules: ProductModule[] = [
     title: "Email Engine",
     eyebrow: "Compose & templates",
     summary:
-      "Send from every module with a Gmail-style composer, merge fields, attachments, and a tenant template library. Build picture-branded layouts or write HTML templates as source code — the same templates Rule Engine uses for automations.",
-    image: "/marketing/documentamangement.png",
-    heroCaption: "Email Engine — compose, templates, HTML editor, and branded sends",
+      "Gmail-style compose in every module, HTML and branded templates, merge fields, and attachments — the same library Rule Engine uses for automations.",
+    image: moduleScreenshot["email-engine"],
+    heroCaption: "Email Engine — compose, templates, and branded HTML sends",
     highlights: [
       "Module-wise compose — CRM, Sales, HRM, Finance, and more",
       "Template library with logo / picture layouts and HTML source editing",
@@ -356,9 +358,9 @@ export const productModules: ProductModule[] = [
     title: "Rule Engine",
     eyebrow: "Automation platform",
     summary:
-      "When→then rules across every module: email customers on overdue invoices, notify HR on leave, alert buyers on low stock, or send sign-in alerts to any address. Schedules, approvals, and a full event log — no code.",
-    image: "/marketing/ERPCRM.png",
-    heroCaption: "Rule Engine — events, conditions, email templates, and action results",
+      "When→then rules on real flow diagrams: email, in-app alerts, tasks, schedules, and approvals across every licensed module — backed by Postgres, not one browser.",
+    image: moduleScreenshot["rule-engine"],
+    heroCaption: "Rule Engine — process flows, events, and automation consoles",
     highlights: [
       "Per-module Rule Engine tab plus company-wide hub (requires Email Engine)",
       "Send email with every template in your library",

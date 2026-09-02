@@ -1,5 +1,14 @@
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 
+/** Paths under /public/PublicImages — real ERP screenshots for marketing */
+const IMG = {
+  sales: "/PublicImages/SALES.png",
+  admin: "/PublicImages/administration.png",
+  operations: "/PublicImages/OPRATIONS.png",
+  healthcare: "/PublicImages/healthcare.png",
+  crm: "/PublicImages/CRM-Dashboard.png"
+} as const;
+
 export type CmsStatus = "draft" | "published";
 
 export type BlogPost = {
@@ -90,7 +99,7 @@ const defaultBlogs: BlogPost[] = [
     content:
       "Most mid-market teams still run the business on a patchwork of Excel, email, and a handful of single-purpose apps. It works until it does not: a missed reorder, an unpaid invoice, a payroll exception that nobody can explain.\n\nBusinessSuite ERP Cloud is built for that moment. Sales, purchasing, inventory, operations, HR, hospital HMS, and finance share one company workspace, with role-based access so the warehouse never sees payroll and finance never overwrites CRM.\n\nImplementation is measured in days, not quarters. You create a company, choose Silver, Gold, Platinum, or Professional, activate with a card on file, and your teams start working in the same system of record.\n\nThe result is not another dashboard. It is fewer hand-offs, cleaner month-end, and a leadership view you can trust.",
     coverEmoji: "📈",
-    coverImage: "/marketing/office-meeting.png?v=20260814",
+    coverImage: IMG.sales,
     author: "Lauren Hale",
     status: "published",
     tags: ["Operations", "Leadership", "ERP"],
@@ -107,7 +116,7 @@ const defaultBlogs: BlogPost[] = [
     content:
       "Security conversations stall ERP deals when the product only offers “admin or not.” U.S. buyers expect least-privilege access, an audit trail, and the ability to revoke a single screen without taking down a module.\n\nBusinessSuite ships menu-level rights: View, Create, Update, and Delete. Company admins set the default matrix for each role, then grant or revoke exceptions for a named employee.\n\nSoft-delete recycle bins keep operational teams productive while administration retains a second line of recovery. Combined with Stripe-backed subscriptions, the platform is ready for a real commercial relationship — not a sandbox demo.",
     coverEmoji: "🔐",
-    coverImage: "/marketing/erp-devices.png?v=20260814",
+    coverImage: IMG.admin,
     author: "Marcus Ellison",
     status: "published",
     tags: ["Security", "Compliance", "Admin"],
@@ -124,7 +133,7 @@ const defaultBlogs: BlogPost[] = [
     content:
       "Distribution and light manufacturing teams lose margin in the gaps between sales and the warehouse. A quote that never became an order. A PO that never became a receipt. Stock that looks available until someone tries to pick it.\n\nBusinessSuite connects those documents in one tenant. Sales quotations convert to orders and invoices. Purchase orders receive against goods receipts with three-way match. Inventory movements, lots, serials, transfers, and adjustments stay visible. Plant work orders and BOMs sit in Operations when you are on Platinum.\n\nWhen finance closes the month, they are looking at the same numbers operations already used all week.",
     coverEmoji: "📦",
-    coverImage: "/marketing/office-meeting.png?v=20260814",
+    coverImage: IMG.operations,
     author: "Priya Nair",
     status: "published",
     tags: ["Inventory", "Sales", "Purchasing"],
@@ -141,7 +150,7 @@ const defaultBlogs: BlogPost[] = [
     content:
       "Clinics and light manufacturers often buy a hospital system and an ERP, then spend a year reconciling people, stock, and money.\n\nBusinessSuite keeps hospital CRUD (patients, appointments, OPD/IPD, pharmacy, lab orders, claims, quality) and plant CRUD (BOM, work orders, maintenance, inspections, fleet, contracts) in the same tenant as finance and HR. Imaging viewers, SMS reminders, and bank statement import remain on the third-party list until you are ready to wire them.\n\nPlatinum and Professional include both modules. Gold already has the commercial core: CRM, sales, procurement, inventory, HRM, and finance — including banks, lots, and debit notes inside those products.",
     coverEmoji: "🏥",
-    coverImage: "/marketing/erphrm.png",
+    coverImage: IMG.healthcare,
     author: "Nadia Rahman",
     status: "published",
     tags: ["Healthcare", "Operations", "ERP"],
