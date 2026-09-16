@@ -3,6 +3,7 @@ export const SUPER_ADMIN_ONLY_MENU_IDS = [
   "settings.companies_tenants",
   "settings.blogs",
   "settings.menus_pages",
+  "settings.landing_images",
   "settings.subscription_packages"
 ] as const;
 

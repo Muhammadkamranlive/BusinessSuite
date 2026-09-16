@@ -390,6 +390,7 @@ export const rawNavGroups: NavGroup[] = [
       { label: "Access Control", href: "/settings/access", permission: "admin.roles.manage", group: "Organization" },
       { label: "Blogs", href: "/settings/blogs", permission: "admin.settings.manage", group: "Content" },
       { label: "Menus & Pages", href: "/settings/content", permission: "admin.settings.manage", group: "Content" },
+      { label: "Landing images", href: "/settings/landing-images", permission: "admin.settings.manage", group: "Content" },
       { label: "Extra form fields", href: "/settings/forms", permission: "admin.settings.manage", group: "Content" },
       { label: "Subscription packages", href: "/settings/packages", permission: "admin.settings.manage", group: "Billing" },
       { label: "My company & billing", href: "/settings/billing", permission: "admin.settings.manage", group: "Billing" },

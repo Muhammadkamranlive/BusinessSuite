@@ -5,7 +5,8 @@ import { Bell, CalendarClock, Mail, ShieldCheck, Workflow, Zap } from "lucide-re
 import { LaptopFrame } from "@/components/marketing/screenshot-frame";
 import { MktCta } from "@/components/marketing/mkt-button";
 import { Reveal } from "@/components/marketing/reveal";
-import { erpScreenshots } from "@/lib/marketing-media";
+import { useLandingMedia } from "@/components/marketing/use-landing-media";
+import { mediaUrl } from "@/lib/marketing-media";
 
 const capabilities = [
   {
@@ -41,6 +42,7 @@ const capabilities = [
 ];
 
 export function RuleEngineShowcase() {
+  const media = useLandingMedia();
   return (
     <section id="rule-engine" className="border-t border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)]">
       <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-24">
@@ -64,7 +66,7 @@ export function RuleEngineShowcase() {
 
         <Reveal delay={80} className="mx-auto mt-10 max-w-4xl">
           <LaptopFrame
-            src={erpScreenshots.crmWorkflow}
+            src={mediaUrl("ruleEngine.showcase", media)}
             alt="Rule Engine and process flow — when→then automations across CRM, sales, HRM, and finance"
             hero
           />

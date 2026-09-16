@@ -1183,16 +1183,18 @@ textarea {
   overflow: hidden;
   border-radius: 1.5rem;
   border: 1px solid color-mix(in srgb, var(--bs-ink) 8%, transparent);
+  background: white;
   box-shadow: 0 24px 56px color-mix(in srgb, var(--bs-ink) 12%, transparent);
 }
 
+/* Full screenshot — scale to width, never crop */
 .mkt-testimonial-photo img {
   display: block;
   width: 100%;
+  max-width: 100%;
   height: auto;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  object-position: center 20%;
+  object-fit: contain;
+  object-position: center;
 }
 
 .mkt-bento {

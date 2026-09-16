@@ -4,9 +4,12 @@ import { useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { MktCta } from "@/components/marketing/mkt-button";
 import { LaptopFrame } from "@/components/marketing/screenshot-frame";
+import { useLandingMedia } from "@/components/marketing/use-landing-media";
 import { productModules } from "@/lib/product-modules";
+import { screenshotForModule } from "@/lib/marketing-media";
 
 export function ModuleLaptopStage() {
+  const media = useLandingMedia();
   const [slug, setSlug] = useState(productModules[0]?.slug ?? "crm");
   const current = productModules.find((m) => m.slug === slug) ?? productModules[0];
 
@@ -34,7 +37,7 @@ export function ModuleLaptopStage() {
         })}
       </div>
       <div className="mx-auto mt-8 max-w-4xl">
-        <LaptopFrame src={current.image} alt={current.heroCaption} hero />
+        <LaptopFrame src={screenshotForModule(current.slug, media)} alt={current.heroCaption} hero />
       </div>
       <div className="mx-auto mt-8 max-w-xl text-center">
         <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--bs-teal)]">{current.eyebrow}</p>

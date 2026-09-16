@@ -23,9 +23,12 @@ import { LandingFaq } from "@/components/marketing/landing-faq";
 import { ensureProductionSiteContent, listBlogs, type BlogPost } from "@/modules/cms/services/cms.store";
 import type { BillingInterval } from "@/modules/billing/services/subscriptions.store";
 import { productModules } from "@/lib/product-modules";
+import { screenshotForModule } from "@/lib/marketing-media";
+import { useLandingMedia } from "@/components/marketing/use-landing-media";
 
 export function LandingHome() {
   const router = useRouter();
+  const media = useLandingMedia();
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [interval, setInterval] = useState<BillingInterval>("year");
   const shelf = [
@@ -51,7 +54,7 @@ export function LandingHome() {
             {shelf.map((item) => (
               <LaptopFrame
                 key={item.slug}
-                src={item.image}
+                src={screenshotForModule(item.slug, media)}
                 alt={item.heroCaption}
                 href={`/product/${item.slug}`}
                 label={item.title}

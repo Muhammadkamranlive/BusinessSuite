@@ -42,3 +42,19 @@ supabase/migrations/
 npm run db:check
 npm run db:seed:verify
 ```
+
+cd /Users/kamran/Documents/ERP
+
+set -a
+source .env.local
+set +a
+
+for key in SUPABASE_SECRET_KEY NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY NEXT_PUBLIC_DB_PRIMARY; do
+  val="${(P)key}"
+  if [[ -n "$val" ]]; then
+    printf '%s' "$val" | npx vercel env add "$key" production,preview,development --force --yes --sensitive
+    echo "→ $key"
+  fi
+done
+
+npx vercel deploy --prod --yes

@@ -8,6 +8,7 @@ import { ProductNav } from "@/components/marketing/product-nav";
 import { MktCta } from "@/components/marketing/mkt-button";
 import { ensureProductionSiteContent, listMenus, listPages } from "@/modules/cms/services/cms.store";
 import { applyDesignTokens, fetchDesignTokens } from "@/lib/design-tokens";
+import { fetchLandingMedia } from "@/lib/marketing-media";
 import { getStoredUserEmail } from "@/lib/auth/session";
 import { useProductBrand } from "@/components/common/use-product-brand";
 import { MEGA_MENU_SECTIONS, TOTAL_PAYABLE_APP_COUNT } from "@/lib/billing/module-catalog";
@@ -27,6 +28,7 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     fetchDesignTokens().then(applyDesignTokens);
+    void fetchLandingMedia();
     ensureProductionSiteContent();
     setMenus(listMenus());
     setLoggedIn(Boolean(getStoredUserEmail()));

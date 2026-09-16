@@ -1,8 +1,9 @@
 "use client";
 
 import { Star } from "lucide-react";
-import { erpScreenshots } from "@/lib/marketing-media";
+import { mediaUrl } from "@/lib/marketing-media";
 import { Reveal } from "@/components/marketing/reveal";
+import { useLandingMedia } from "@/components/marketing/use-landing-media";
 
 const quotes = [
   {
@@ -44,6 +45,7 @@ const quotes = [
 ];
 
 export function Testimonials() {
+  const media = useLandingMedia();
   const loop = [...quotes, ...quotes];
   return (
     <section className="border-t border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)] py-16 md:py-24">
@@ -60,7 +62,7 @@ export function Testimonials() {
         </div>
         <div className="mkt-testimonial-photo">
           <img
-            src={erpScreenshots.administration}
+            src={mediaUrl("testimonials.photo", media)}
             alt="BusinessSuite administration — company dashboard, users, and access control"
             width={1200}
             height={900}

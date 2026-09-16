@@ -13,7 +13,8 @@ import {
   publicPageRoutes,
   type CmsPage
 } from "@/modules/cms/services/cms.store";
-import { marketingPhotos } from "@/lib/marketing-media";
+import { mediaUrl } from "@/lib/marketing-media";
+import { useLandingMedia } from "@/components/marketing/use-landing-media";
 
 const aboutValues = [
   {
@@ -39,6 +40,7 @@ export function MarketingCmsPage({
   showContactForm?: boolean;
   heroImage?: string;
 }) {
+  const media = useLandingMedia();
   const [page, setPage] = useState<CmsPage | null>(null);
   const spec = publicPageRoutes[route];
 
@@ -75,12 +77,19 @@ export function MarketingCmsPage({
             ? "legal"
             : "article";
 
-  const image = heroImage ?? marketingPhotos.office;
+  const fallbackImage =
+    route === "contact" || showContactForm
+      ? mediaUrl("photo.support", media)
+      : route === "security"
+        ? mediaUrl("photo.dashboard", media)
+        : mediaUrl("photo.office", media);
+  const image = heroImage ?? fallbackImage;
+  const officeImage = mediaUrl("photo.office", media);
   const headings = extractHeadings(page.content);
 
   return (
     <PublicSiteShell>
-      {layout === "about" ? <AboutLayout page={page} image={image} /> : null}
+      {layout === "about" ? <AboutLayout page={page} image={image} officeImage={officeImage} /> : null}
       {layout === "contact" ? <ContactLayout page={page} /> : null}
       {layout === "security" ? <SecurityLayout page={page} /> : null}
       {layout === "legal" ? <LegalLayout page={page} headings={headings} /> : null}
@@ -112,7 +121,7 @@ function PageHero({
   );
 }
 
-function AboutLayout({ page, image }: { page: CmsPage; image: string }) {
+function AboutLayout({ page, image, officeImage }: { page: CmsPage; image: string; officeImage: string }) {
   return (
     <>
       <PageHero eyebrow="Company" title={page.title} summary={page.summary} />
@@ -134,7 +143,7 @@ function AboutLayout({ page, image }: { page: CmsPage; image: string }) {
         <CmsArticle title={page.title} content={page.content} hideTitle />
         <div className="space-y-4">
           <img src={image} alt="BusinessSuite team collaboration" className="h-72 w-full rounded-[1.5rem] object-cover shadow-[0_24px_50px_rgba(10,37,64,0.12)] sm:h-96" />
-          <img src={marketingPhotos.office} alt="Austin office" className="hidden h-56 w-full rounded-[1.5rem] object-cover md:block" />
+          <img src={officeImage} alt="Austin office" className="hidden h-56 w-full rounded-[1.5rem] object-cover md:block" />
         </div>
       </section>
       <section className="bg-white">

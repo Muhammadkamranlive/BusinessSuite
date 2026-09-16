@@ -15,7 +15,7 @@ import {
   type ExtraFieldDef,
   type ExtraFieldType
 } from "@/modules/forms/extra-fields";
-import { getFormSchema, saveFormSchema } from "@/modules/forms/services/extra-fields.store";
+import { getFormSchema, saveFormSchema, subscribeExtraFields } from "@/modules/forms/services/extra-fields.store";
 
 export function ExtraFieldsBlock({
   formKey,
@@ -39,6 +39,8 @@ export function ExtraFieldsBlock({
   const [draft, setDraft] = useState<ExtraFieldDef[]>(schema);
   const [designError, setDesignError] = useState("");
   const values = parseExtraFieldValues(valueJson);
+
+  useEffect(() => subscribeExtraFields(() => setSchemaTick((t) => t + 1)), []);
 
   useEffect(() => {
     if (!schema.length) return;

@@ -10,7 +10,8 @@ import {
 import { MktCta } from "@/components/marketing/mkt-button";
 import { Reveal } from "@/components/marketing/reveal";
 import { StatCounter } from "@/components/marketing/stat-counter";
-import { erpScreenshots } from "@/lib/marketing-media";
+import { useLandingMedia } from "@/components/marketing/use-landing-media";
+import { mediaUrl } from "@/lib/marketing-media";
 
 const heroStats = [
   { value: 13, suffix: "", label: "Business apps" },
@@ -28,6 +29,7 @@ const heroFaces = [
 ];
 
 export function LandingHero() {
+  const media = useLandingMedia();
   return (
     <section className="relative overflow-x-clip">
       <div className="mkt-aurora" aria-hidden />
@@ -89,7 +91,7 @@ export function LandingHero() {
               <div className="mkt-hero-scene-glow" aria-hidden />
               <div className="mkt-hero-shot">
                 <img
-                  src={erpScreenshots.executiveDashboard}
+                  src={mediaUrl("hero.dashboard", media)}
                   alt="BusinessSuite executive dashboard — live operational mix, CRM funnel, and company KPIs"
                 />
               </div>

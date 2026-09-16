@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, BookOpen, Building2, KeyRound, LayoutGrid, Mail, Newspaper, Shield, Users } from "lucide-react";
+import { Bell, BookOpen, Building2, ImageIcon, KeyRound, LayoutGrid, Mail, Newspaper, Shield, Users } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
 import { AdminSubnav } from "@/components/admin/admin-subnav";
 import { ModuleBreadcrumbs } from "@/components/common/module-breadcrumbs";
@@ -20,6 +20,7 @@ const quickLinks = [
   { href: "/settings/access", title: "Menu rights matrix", detail: "View / Add / Update / Delete by role or user", icon: KeyRound, menuId: "settings.access_control" },
   { href: "/settings/blogs", title: "Publish blogs", detail: "Write and publish public blog posts", icon: Newspaper, menuId: "settings.blogs" },
   { href: "/settings/content", title: "Menus & pages", detail: "Build public site menus and nested pages", icon: LayoutGrid, menuId: "settings.menus_pages" },
+  { href: "/settings/landing-images", title: "Landing images", detail: "Update homepage and product screenshots", icon: ImageIcon, menuId: "settings.landing_images" },
   { href: "/settings/tenants", title: "Companies / tenants", detail: "Multi-company profiles and plans", icon: Building2, menuId: "settings.companies_tenants" },
   { href: "/settings/roles", title: "Roles & permissions", detail: "Add roles, edit modules, and assign them to users", icon: Shield, menuId: "settings.roles_permissions" },
   { href: "/settings/email-templates", title: "Email templates", detail: "Gmail/Nodemailer templates for invites, leave, invoices", icon: Mail, menuId: "settings.email_templates" },

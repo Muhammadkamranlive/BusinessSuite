@@ -10,10 +10,14 @@ import type { ProductModule } from "@/lib/product-modules";
 import { productModules } from "@/lib/product-modules";
 import { getModuleFlow } from "@/lib/product-module-flows";
 import { ModuleFlowDiagram } from "@/components/marketing/module-flow-diagram";
+import { useLandingMedia } from "@/components/marketing/use-landing-media";
+import { screenshotForModule } from "@/lib/marketing-media";
 
 export function ProductModulePage({ module }: { module: ProductModule }) {
-          const others = productModules.filter((m) => m.slug !== module.slug);
+  const media = useLandingMedia();
+  const others = productModules.filter((m) => m.slug !== module.slug);
   const flow = getModuleFlow(module.slug);
+  const image = screenshotForModule(module.slug, media);
 
   return (
     <PublicSiteShell>
@@ -45,7 +49,7 @@ export function ProductModulePage({ module }: { module: ProductModule }) {
             </div>
           </Reveal>
           <Reveal delay={120} className="mx-auto mt-12 max-w-4xl">
-            <LaptopFrame src={module.image} alt={module.heroCaption} hero />
+            <LaptopFrame src={image} alt={module.heroCaption} hero />
             <p className="mt-4 text-center text-sm text-slate-500">{module.heroCaption}</p>
           </Reveal>
         </div>

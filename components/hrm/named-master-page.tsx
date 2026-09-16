@@ -13,7 +13,7 @@ import { Button, Field, Panel, TextInput } from "@/components/ui";
 import { getStoredTenantId } from "@/lib/auth/session";
 import { exportListCsv, exportListPdf } from "@/lib/list-export";
 import { filterAndSort } from "@/lib/list-query";
-import { persistExtraFields } from "@/modules/forms/services/extra-fields.store";
+import { getExtraFieldValues, persistExtraFields } from "@/modules/forms/services/extra-fields.store";
 
 type NamedRow = { id: string; name: string; code: string };
 
@@ -83,7 +83,7 @@ export function NamedMasterPage({
     const raw = row as Record<string, unknown>;
     for (const f of extraFields ?? []) next[f.key] = String(raw[f.key] ?? "");
     setForm(next);
-    setExtraJson("");
+    setExtraJson(getExtraFieldValues(tenantId, formKey, row.id));
     setOpenForm(true);
   }
 

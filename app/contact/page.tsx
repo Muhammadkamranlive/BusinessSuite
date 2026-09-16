@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { MarketingCmsPage } from "@/components/marketing/marketing-cms-page";
-import { marketingPhotos } from "@/lib/marketing-media";
 
 export const metadata: Metadata = {
   title: "Contact us | BusinessSuite ERP Cloud",
@@ -8,5 +7,5 @@ export const metadata: Metadata = {
 };
 
 export default function ContactPage() {
-  return <MarketingCmsPage route="contact" showContactForm heroImage={marketingPhotos.support} />;
+  return <MarketingCmsPage route="contact" showContactForm />;
 }

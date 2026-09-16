@@ -1,7 +1,7 @@
 "use client";
 
 import { NavLink } from "@/components/navigation/nav-link";
-import { Building2, Bell, BookOpen, CreditCard, FileSearch, FileText, GitBranch, KeyRound, LayoutGrid, ListPlus, Mail, Newspaper, Package, Plug, Settings2, Shield, Trash2, Users, Zap } from "lucide-react";
+import { Building2, Bell, BookOpen, CreditCard, FileSearch, FileText, GitBranch, ImageIcon, KeyRound, LayoutGrid, ListPlus, Mail, Newspaper, Package, Plug, Settings2, Shield, Trash2, Users, Zap } from "lucide-react";
 import { canMenu } from "@/modules/admin/services/acl.store";
 import { getSessionProfile } from "@/lib/auth/session-profile";
 import { cn } from "@/lib/utils";
@@ -16,6 +16,7 @@ const links = [
   { href: "/settings/billing", label: "My company & billing", icon: CreditCard, menuId: "settings.my_company_billing" },
   { href: "/settings/blogs", label: "Blogs", icon: Newspaper, menuId: "settings.blogs" },
   { href: "/settings/content", label: "Menus & Pages", icon: LayoutGrid, menuId: "settings.menus_pages" },
+  { href: "/settings/landing-images", label: "Landing images", icon: ImageIcon, menuId: "settings.landing_images" },
   { href: "/settings/forms", label: "Extra fields", icon: ListPlus, menuId: "settings.extra_form_fields" },
   { href: "/settings/recycle-bin", label: "Recycle bin", icon: Trash2, menuId: "settings.recycle_bin" },
   { href: "/settings/audit", label: "Audit Logs", icon: FileSearch, menuId: "settings.audit_logs" },
