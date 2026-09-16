@@ -152,7 +152,9 @@ export function setCachedLandingMedia(media: LandingMediaMap) {
 
 export function subscribeLandingMedia(listener: () => void) {
   listeners.add(listener);
-  return () => listeners.delete(listener);
+  return () => {
+    listeners.delete(listener);
+  };
 }
 
 export function mediaUrl(slot: LandingMediaSlot, media?: LandingMediaMap): string {

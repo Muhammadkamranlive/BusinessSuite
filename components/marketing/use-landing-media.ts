@@ -15,7 +15,9 @@ export function useLandingMedia(): LandingMediaMap {
 
   useEffect(() => {
     void fetchLandingMedia().then(setMedia);
-    return subscribeLandingMedia(() => setMedia(getCachedLandingMedia()));
+    return subscribeLandingMedia(() => {
+      setMedia(getCachedLandingMedia());
+    });
   }, []);
 
   return media ?? defaultLandingMedia;
