@@ -639,7 +639,7 @@ export const guideCatalog: GuideDefinition[] = [
       flow("bi.flow", "Use analytics after transactions exist", "Empty charts usually mean missing source docs.", [
         step("1", "Load operational data", "Sales, stock, HR as needed.", "/sales", "Data"),
         step("2", "Open executive KPIs", "Hub tiles and charts.", "/reports", "View"),
-        step("3", "Drill module analytics", "Sales / inventory / HR / finance sections.", "/reports#sales", "Drill"),
+        step("3", "Jump to module analytics", "Open CRM / Sales / HR / Finance reports inside each module.", "/reports#modules", "Drill"),
         step("4", "Custom / snapshots", "Save views for leadership.", "/reports/custom", "Save")
       ])
     ]

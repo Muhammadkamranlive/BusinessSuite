@@ -219,8 +219,10 @@ export async function inviteUser(input: {
   }
   const email = input.email.trim().toLowerCase();
   const password = (input.password ?? "").trim();
-  if (password.length < 8) {
-    throw new Error("Set a password (at least 8 characters) so this person can sign in.");
+  const { validatePassword } = await import("@/lib/auth/server/password-policy");
+  const policyCheck = validatePassword(password);
+  if (!policyCheck.ok) {
+    throw new Error(policyCheck.error);
   }
 
   const res = await fetch("/api/admin/users", {

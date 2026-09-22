@@ -214,6 +214,7 @@ export const rawNavGroups: NavGroup[] = [
       { label: "Warranty claims", href: "/operations/warranties", permission: "operations.warranties.view", group: "Maintenance" },
       { label: "Quality inspections", href: "/operations/inspections", permission: "operations.inspections.view", group: "Quality" },
       { label: "Contracts", href: "/operations/contracts", permission: "operations.contracts.view", group: "Commercial" },
+      { label: "Operations analytics", href: "/operations/reports", permission: "operations.overview.view", group: "Core" },
       { label: "Recycle bin", href: "/operations/recycle-bin", permission: "operations.recycle_bin.view", group: "Core" }
     ]
   },
@@ -275,6 +276,8 @@ export const rawNavGroups: NavGroup[] = [
       { label: "Doctors", href: "/healthcare/doctors", permission: "healthcare.doctors.view", group: "Front desk" },
       { label: "Appointments", href: "/healthcare/appointments", permission: "healthcare.appointments.view", group: "Front desk" },
       { label: "OPD visits", href: "/healthcare/opd", permission: "healthcare.opd.view", group: "Front desk" },
+      { label: "Clinical billing", href: "/healthcare/billing", permission: "healthcare.billing.view", group: "Front desk" },
+      { label: "HMS compliance", href: "/healthcare/hms-compliance", permission: "healthcare.hms_compliance.view", group: "Quality" },
       { label: "Emergency / ED", href: "/healthcare/emergency", permission: "healthcare.emergency.view", group: "Front desk" },
       { label: "Wards", href: "/healthcare/wards", permission: "healthcare.wards.view", group: "IPD" },
       { label: "Beds", href: "/healthcare/beds", permission: "healthcare.beds.view", group: "IPD" },
@@ -292,7 +295,17 @@ export const rawNavGroups: NavGroup[] = [
       { label: "Lab orders", href: "/healthcare/lab-orders", permission: "healthcare.lab_orders.view", group: "Diagnostics" },
       { label: "Radiology orders", href: "/healthcare/radiology", permission: "healthcare.radiology.view", group: "Diagnostics" },
       { label: "Pharmacy items", href: "/healthcare/pharmacy", permission: "healthcare.pharmacy.view", group: "Pharmacy" },
+      { label: "Pharmacy orders", href: "/healthcare/pharmacy-orders", permission: "healthcare.pharmacy_orders.view", group: "Pharmacy" },
       { label: "Dispensing", href: "/healthcare/dispensing", permission: "healthcare.dispensing.view", group: "Pharmacy" },
+      { label: "Rx marketplace", href: "/healthcare/marketplace", permission: "healthcare.marketplace.view", group: "Marketplace" },
+      { label: "Pharmacy partners", href: "/healthcare/pharmacies", permission: "healthcare.pharmacies.view", group: "Marketplace" },
+      { label: "Marketplace products", href: "/healthcare/marketplace-products", permission: "healthcare.marketplace_products.view", group: "Marketplace" },
+      { label: "Provider verification", href: "/healthcare/providers", permission: "healthcare.providers.view", group: "Marketplace" },
+      { label: "Clinic orders", href: "/healthcare/clinic-orders", permission: "healthcare.clinic_orders.view", group: "Marketplace" },
+      { label: "Checkout", href: "/healthcare/checkout", permission: "healthcare.checkout.view", group: "Marketplace" },
+      { label: "Pharmacy fulfillment", href: "/healthcare/fulfillment", permission: "healthcare.fulfillment.view", group: "Marketplace" },
+      { label: "Compliance audit", href: "/healthcare/compliance-audit", permission: "healthcare.compliance_audit.view", group: "Marketplace" },
+      { label: "Marketplace analytics", href: "/healthcare/marketplace-analytics", permission: "healthcare.marketplace_analytics.view", group: "Marketplace" },
       { label: "Insurance policies", href: "/healthcare/insurance", permission: "healthcare.insurance.view", group: "Payer" },
       { label: "Insurance claims", href: "/healthcare/claims", permission: "healthcare.claims.view", group: "Payer" },
       { label: "Infection control", href: "/healthcare/infection", permission: "healthcare.infection.view", group: "Quality" },
@@ -300,6 +313,11 @@ export const rawNavGroups: NavGroup[] = [
       { label: "PHC audit checklist", href: "/healthcare/phc-audit", permission: "healthcare.phc_audit.view", group: "Quality" },
       { label: "CSSD logs", href: "/healthcare/cssd", permission: "healthcare.cssd.view", group: "Quality" },
       { label: "Biomedical equipment", href: "/healthcare/equipment", permission: "healthcare.equipment.view", group: "Quality" },
+      { label: "Telemedicine", href: "/healthcare/telemedicine", permission: "healthcare.telemedicine.view", group: "Front desk" },
+      { label: "Branches", href: "/healthcare/branches", permission: "healthcare.branches.view", group: "Core" },
+      { label: "Notifications", href: "/healthcare/notifications", permission: "healthcare.notifications.view", group: "Core" },
+      { label: "Patient portal", href: "/healthcare/portal", permission: "healthcare.portal.view", group: "Core" },
+      { label: "Healthcare analytics", href: "/healthcare/reports", permission: "healthcare.overview.view", group: "Core" },
       { label: "Recycle bin", href: "/healthcare/recycle-bin", permission: "healthcare.recycle_bin.view", group: "Core" }
     ]
   },
@@ -368,10 +386,7 @@ export const rawNavGroups: NavGroup[] = [
     icon: BarChart3,
     children: [
       { label: "Executive KPIs", href: "/reports#kpis", permission: "reports.view" },
-      { label: "Sales Analytics", href: "/reports#sales", permission: "reports.view" },
-      { label: "Inventory Analytics", href: "/reports#inventory", permission: "reports.view" },
-      { label: "HR Analytics", href: "/reports#hr", permission: "reports.view" },
-      { label: "Finance Analytics", href: "/reports#finance", permission: "reports.view" },
+      { label: "Module analytics hub", href: "/reports#modules", permission: "reports.view" },
       { label: "Custom Report", href: "/reports/custom", permission: "reports.view" },
       { label: "Report Snapshots", href: "/reports#snapshots", permission: "reports.view" }
     ]

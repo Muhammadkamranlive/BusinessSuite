@@ -61,7 +61,7 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
 
           <div className="hidden items-center gap-2 sm:flex">
             {loggedIn ? (
-              <MktCta href="/dashboard">Open workspace</MktCta>
+              <MktCta href="/apps">Open workspace</MktCta>
             ) : (
               <>
                 <MktCta href="/login" variant="ghost">

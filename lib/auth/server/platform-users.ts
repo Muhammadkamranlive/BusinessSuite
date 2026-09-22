@@ -1,5 +1,6 @@
 import { DEMO_PASSWORD } from "@/lib/auth/constants";
 import { roleKeyFromName, roleNameFromKey } from "@/lib/auth/server/role-map";
+import { validatePassword } from "@/lib/auth/server/password-policy";
 import type { RoleKey } from "@/lib/permissions";
 import { getSupabaseAdminClient, getSupabaseAuthClient, hasSecretKey } from "@/lib/supabase/server";
 import { toDbTenantId, toUiTenantId } from "@/lib/tenants/ids";
@@ -156,7 +157,8 @@ export async function invitePlatformUser(input: {
   if (existing) throw new Error("This email is already a user in this company.");
 
   const password = input.password.trim();
-  if (password.length < 8) throw new Error("Set a password (at least 8 characters) so this person can sign in.");
+  const policyCheck = validatePassword(password);
+  if (!policyCheck.ok) throw new Error(policyCheck.error);
 
   const authUserId = await ensureAuthUser(email, password, input.name.trim());
   const title = roleNameFromKey(input.role);
@@ -250,4 +252,54 @@ export async function bootstrapDemoAuthUsers() {
   }
 
   return { ok: true as const };
+}
+
+/**
+ * De-provision a platform user: block profile, revoke Supabase Auth sessions.
+ * Uses global sign-out + optional ban to invalidate refresh tokens.
+ */
+export async function deprovisionPlatformUser(profileId: string, actorEmail: string) {
+  const admin = getSupabaseAdminClient();
+  const { data: profile, error: fetchErr } = await admin
+    .from("user_profiles")
+    .select("id, email, auth_user_id, status")
+    .eq("id", profileId)
+    .maybeSingle();
+
+  if (fetchErr) throw new Error(fetchErr.message);
+  if (!profile) throw new Error("User profile not found.");
+
+  const patch: Record<string, unknown> = {
+    status: "blocked",
+    updated_at: new Date().toISOString()
+  };
+  let updateResult = await admin
+    .from("user_profiles")
+    .update({ ...patch, deprovisioned_at: new Date().toISOString() })
+    .eq("id", profileId);
+  if (updateResult.error?.message?.includes("deprovisioned_at")) {
+    updateResult = await admin.from("user_profiles").update(patch).eq("id", profileId);
+  }
+  if (updateResult.error) throw new Error(updateResult.error.message);
+
+  const authUserId = profile.auth_user_id as string | null;
+  if (authUserId) {
+    try {
+      await admin.auth.admin.signOut(authUserId, "global");
+    } catch {
+      /* signOut may fail on older SDK — fall through to ban */
+    }
+    try {
+      await admin.auth.admin.updateUserById(authUserId, { ban_duration: "876600h" });
+    } catch {
+      /* ban optional */
+    }
+  }
+
+  return {
+    profileId: profile.id as string,
+    email: (profile.email as string).toLowerCase(),
+    actorEmail,
+    authRevoked: Boolean(authUserId)
+  };
 }

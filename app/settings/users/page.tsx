@@ -51,7 +51,40 @@ export default function UsersPage() {
   const [createdLogin, setCreatedLogin] = useState<{ email: string; password: string | null; existingLogin: boolean; name: string } | null>(null);
   const [passwordUser, setPasswordUser] = useState<{ email: string; name: string; password: string; confirm: string } | null>(null);
   const [copyStatus, setCopyStatus] = useState("");
+  const [adminMsg, setAdminMsg] = useState("");
   const roleOptions = listAssignableRoleOptions(actor.role);
+
+  async function deprovisionUser(u: AdminUser) {
+    setAdminMsg("");
+    const res = await fetch("/api/admin/users/deprovision", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: u.id, email: u.email })
+    });
+    const data = (await res.json()) as { ok?: boolean; error?: string };
+    if (!res.ok || !data.ok) {
+      setAdminMsg(data.error ?? "Deprovision failed");
+      return;
+    }
+    updateUser(u.id, { status: "blocked" });
+    setAdminMsg(`${u.email} deprovisioned — sessions revoked.`);
+    refresh();
+  }
+
+  async function unlockUser(email: string) {
+    setAdminMsg("");
+    const res = await fetch("/api/auth/unlock", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email })
+    });
+    const data = (await res.json()) as { ok?: boolean; error?: string };
+    if (!res.ok || !data.ok) {
+      setAdminMsg(data.error ?? "Unlock failed");
+      return;
+    }
+    setAdminMsg(`${email} login lockout cleared.`);
+  }
 
   function refresh() {
     setUsers(listCompanyDirectoryUsers(tenantId));
@@ -140,6 +173,7 @@ export default function UsersPage() {
         onAction={() => { setExtraJson(""); setError(""); setForm(newInviteForm()); setOpenInvite(true); }}
       />
       <AdminSubnav active="/settings/users" />
+      {adminMsg ? <p className="mb-3 text-sm text-slate-600">{adminMsg}</p> : null}
 
       <DataListToolbar
         search={search}
@@ -449,6 +483,32 @@ export default function UsersPage() {
                           Block
                         </Button>
                       ) : null}
+                      <Button
+                        variant="ghost"
+                        className="!min-h-8 !px-2 !text-xs text-rose-700"
+                        onClick={() =>
+                          askSave({
+                            editing: false,
+                            entityLabel: "user deprovision",
+                            onConfirm: () => void deprovisionUser(u)
+                          })
+                        }
+                      >
+                        Deprovision
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="!min-h-8 !px-2 !text-xs"
+                        onClick={() =>
+                          askSave({
+                            editing: false,
+                            entityLabel: "account unlock",
+                            onConfirm: () => void unlockUser(u.email)
+                          })
+                        }
+                      >
+                        Unlock account
+                      </Button>
                     </div>
                   </td>
                 </tr>

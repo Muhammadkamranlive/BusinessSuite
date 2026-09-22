@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { validatePassword } from "@/lib/auth/server/password-policy";
 import { getSupabaseAdminClient, hasSecretKey } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
@@ -24,8 +25,12 @@ export async function POST(request: Request) {
 
   const email = body.email?.trim().toLowerCase();
   const password = body.password ?? "";
-  if (!email || password.length < 8) {
-    return NextResponse.json({ ok: false, reason: "email and password (8+) required" }, { status: 400 });
+  if (!email || !password) {
+    return NextResponse.json({ ok: false, reason: "email and password required" }, { status: 400 });
+  }
+  const policyCheck = validatePassword(password);
+  if (!policyCheck.ok) {
+    return NextResponse.json({ ok: false, reason: policyCheck.error }, { status: 400 });
   }
 
   const admin = getSupabaseAdminClient();

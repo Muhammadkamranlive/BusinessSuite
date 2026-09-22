@@ -7,7 +7,9 @@ export function isDatabasePrimary(): boolean {
     process.env.SUPABASE_SECRET_KEY?.trim() ||
       process.env.NEXT_PUBLIC_OPS_USE_SUPABASE === "true" ||
       process.env.NEXT_PUBLIC_HRM_USE_SUPABASE === "true" ||
-      process.env.NEXT_PUBLIC_AUTOMATION_USE_SUPABASE === "true"
+      process.env.NEXT_PUBLIC_AUTOMATION_USE_SUPABASE === "true" ||
+      process.env.NEXT_PUBLIC_HEALTHCARE_MARKETPLACE_USE_SUPABASE === "true" ||
+      process.env.NEXT_PUBLIC_HMS_USE_SUPABASE === "true"
   );
 }
 

@@ -26,19 +26,17 @@ Every dashboard shell must keep the top-center **menu search** with autocomplete
 - New menus **must** be registry-driven so search stays complete.
 - Do not remove or hide menu search from module layouts.
 
-## Sidebar accordion (mandatory)
+## Apps portal + decoupled modules (mandatory)
 
-The left sidebar uses a **traditional accordion** (expand/collapse under each module):
+1. After login, users land on **`/apps`** — a card grid of licensed products (HRM, CRM, Healthcare, …).
+2. Opening a card enters **one app only**. The sidebar shows **only that module’s menus**, flat (no multi-module accordion, no nested Core/Employment dropdowns).
+3. **All apps** (sidebar + header) returns to `/apps`. Search inside an app is scoped to that module’s menus.
+4. Do not reintroduce a global multi-module sidebar as the primary navigation.
 
-1. Root lists all product modules the user can view (Dashboard, CRM, Sales, HRM, …).
-2. Clicking the **chevron** expands/collapses that module’s child menus in place (dropdown under the module).
-3. Clicking the **module label** navigates to the module home (`href`) and keeps the accordion UX.
-4. Long menus use **nested accordions** (`group` on nav children): Core / Employment / Organization (etc.) are chevron rows. Click the section to expand/collapse its pages — same open/close pattern as the module row. Auto-expand the section that contains the current URL. Do not dump every child as a flat list under the module.
-5. When the current URL belongs to a module, **auto-expand** that module and **highlight** the matching child (path + hash aware).
-6. Active child: high-contrast (white on dark). Expanded/active module row uses teal or soft white fill.
+## Sidebar accordion (within one app)
 
-Do not use drill-down “replace the whole sidebar with Back” for primary navigation. Do not split one product (e.g. HRM) into multiple top-level sidebar modules.
+Inside an open app, menus are a **flat list** ordered by process stage where applicable (Guide → numbered stages → other menus → Email / Rule tools). Do not nest further dropdown sections that hide menus.
 
 ## Routes
 
-Every sidebar `href` must resolve to a real `app/.../page.tsx` (or an in-page hash on an existing page such as `/reports#sales`). Prefer dedicated routes over `#` stubs for distinct menus (e.g. `/crm/contacts`, not `/crm/customers#contacts`).
+Every sidebar `href` must resolve to a real `app/.../page.tsx` (or an in-page hash on an existing page such as `/reports#kpis`). Prefer dedicated routes over `#` stubs for distinct menus (e.g. `/crm/contacts`, not `/crm/customers#contacts`). Module analytics use `/crm/reports`, `/sales/reports`, etc. — not `/reports#sales`.

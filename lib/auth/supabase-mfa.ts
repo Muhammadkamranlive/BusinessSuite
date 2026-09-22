@@ -65,3 +65,21 @@ export async function needsMfaChallenge() {
   if (error) return false;
   return data.currentLevel === "aal1" && data.nextLevel === "aal2";
 }
+
+export async function hasTotpEnrolled() {
+  if (!isSupabaseConfigured()) return false;
+  const factors = await listMfaFactors();
+  return (factors.totp?.length ?? 0) > 0;
+}
+
+/** True when Supabase MFA challenge or HMS-mandated enrollment/verify is still required. */
+export async function mustCompleteMfaGate(hmsMfaRequired: boolean) {
+  if (!isSupabaseAuthEnabled()) return hmsMfaRequired;
+  try {
+    if (await needsMfaChallenge()) return true;
+    if (hmsMfaRequired && !(await hasTotpEnrolled())) return true;
+    return false;
+  } catch {
+    return hmsMfaRequired;
+  }
+}

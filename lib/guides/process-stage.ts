@@ -5,7 +5,7 @@ import type { GuideFlow, GuideStep } from "@/lib/guides/types";
 export type ProcessStageInfo = {
   module: ModuleKey;
   flowTitle: string;
-  /** 1-based index in the primary module flow */
+  /** 1-based index in the primary module flow; totalStages+1 = Menus stage */
   stageNumber: number;
   totalStages: number;
   /** Human label e.g. "1st stage", "2nd stage" */
@@ -18,6 +18,8 @@ export type ProcessStageInfo = {
   next?: { title: string; href?: string };
   /** True when this path is the module hub / guide, not a numbered step */
   isOverview?: boolean;
+  /** True when this screen lives under the last “Menus” accordion */
+  isMenusStage?: boolean;
 };
 
 function normalizePath(pathname: string) {
@@ -29,7 +31,6 @@ function pathMatchesStep(pathname: string, href?: string) {
   const path = normalizePath(pathname);
   const base = normalizePath(href);
   if (path === base) return true;
-  // Nested routes under the step menu (e.g. /crm/leads/new)
   if (base !== "/" && path.startsWith(`${base}/`)) return true;
   return false;
 }
@@ -75,7 +76,6 @@ function bestStepIndex(pathname: string, steps: GuideStep[]): number {
     const href = steps[i].href;
     if (!href || !pathMatchesStep(pathname, href)) continue;
     const len = normalizePath(href).length;
-    // Prefer the longest matching href; if tied, prefer earlier stage (module-local steps)
     if (len > bestLen || (len === bestLen && (best < 0 || i < best))) {
       best = i;
       bestLen = len;
@@ -87,6 +87,7 @@ function bestStepIndex(pathname: string, steps: GuideStep[]): number {
 /**
  * Resolve which process-flow stage the current menu belongs to,
  * using the module's primary (first) flow diagram.
+ * Screens not in the flow are the final “Menus” stage (after all numbered stages).
  */
 export function resolveProcessStage(pathname: string): ProcessStageInfo | null {
   const module = moduleKeyForPath(pathname);
@@ -99,53 +100,65 @@ export function resolveProcessStage(pathname: string): ProcessStageInfo | null {
   const moduleHref = normalizePath(navGroups.find((g) => g.key === module)?.href || `/${module}`);
   const isGuidePage = path.endsWith("/guide");
   const isHub = path === moduleHref;
+  const flowStageCount = flow.steps.filter((s) => {
+    if (!s.href) return false;
+    const stepPath = normalizePath(s.href);
+    return stepPath === moduleHref || stepPath.startsWith(`${moduleHref}/`);
+  }).length;
+  const menusStageNumber = Math.max(flowStageCount, flow.steps.length) + 1;
 
   if (isGuidePage || isHub) {
     return {
       module,
       flowTitle: flow.title,
       stageNumber: 0,
-      totalStages: flow.steps.length,
+      totalStages: menusStageNumber,
       stageOrdinal: "Overview",
       stageName: isGuidePage ? "Flow diagram" : "Module home",
       stageDescription: flow.summary,
       isOverview: true,
-      next: flow.steps[0]
-        ? { title: flow.steps[0].title, href: flow.steps[0].href }
-        : undefined
+      next: flow.steps[0] ? { title: flow.steps[0].title, href: flow.steps[0].href } : undefined
     };
   }
 
   const idx = bestStepIndex(pathname, flow.steps);
   if (idx < 0) {
-    // Menu not in primary flow — still show context so users aren't lost
+    const lastFlowStep = flow.steps[flow.steps.length - 1];
     return {
       module,
       flowTitle: flow.title,
-      stageNumber: 0,
-      totalStages: flow.steps.length,
-      stageOrdinal: "Supporting menu",
-      stageName: "Not a numbered stage",
-      stageDescription: `This screen supports “${flow.title}” but is not one of the ${flow.steps.length} main stages. Open Flow diagram for the full sequence.`,
-      isOverview: true
+      stageNumber: menusStageNumber,
+      totalStages: menusStageNumber,
+      stageOrdinal: stageOrdinalLabel(menusStageNumber),
+      stageName: "Menus",
+      stageDescription:
+        "All other screens for this module live here after the process stages — analytics, masters, recycle bin, and supporting tools.",
+      tag: "Last stage",
+      isMenusStage: true,
+      prev: lastFlowStep ? { title: lastFlowStep.title, href: lastFlowStep.href } : undefined
     };
   }
 
   const step = flow.steps[idx];
   const prev = idx > 0 ? flow.steps[idx - 1] : undefined;
   const next = idx < flow.steps.length - 1 ? flow.steps[idx + 1] : undefined;
+  const isLastFlowStep = idx === flow.steps.length - 1;
 
   return {
     module,
     flowTitle: flow.title,
     stageNumber: idx + 1,
-    totalStages: flow.steps.length,
+    totalStages: menusStageNumber,
     stageOrdinal: stageOrdinalLabel(idx + 1),
     stageName: step.title,
     stageDescription: step.description,
     tag: step.tag,
     prev: prev ? { title: prev.title, href: prev.href } : undefined,
-    next: next ? { title: next.title, href: next.href } : undefined
+    next: next
+      ? { title: next.title, href: next.href }
+      : isLastFlowStep
+        ? { title: "Menus", href: undefined }
+        : undefined
   };
 }
 
@@ -162,8 +175,8 @@ export type StagedNavChild<T extends NavChildLike = NavChildLike> = T & {
 };
 
 /**
- * Reorder module sidebar children: Flow diagram → stage 1 → stage 2 → … → other menus.
- * Only stages whose href belongs to this module are ranked (cross-module handoffs stay out).
+ * Reorder module sidebar children:
+ * Guide → Process flow stages → Menus (last stage, all remaining screens) → Email → Rule Engine
  */
 export function sortNavChildrenByProcessStage<T extends NavChildLike>(
   module: ModuleKey,
@@ -183,6 +196,9 @@ export function sortNavChildrenByProcessStage<T extends NavChildLike>(
       if (!hrefToStage.has(stepPath)) hrefToStage.set(stepPath, index + 1);
     });
   }
+
+  const flowStageCount = hrefToStage.size;
+  const menusStageNumber = flowStageCount + 1;
 
   function stageFor(child: T): number | undefined {
     const path = normalizePath(child.href);
@@ -213,7 +229,8 @@ export function sortNavChildrenByProcessStage<T extends NavChildLike>(
     }
     const path = normalizePath(child.href);
     if (path === modBase && (child.label === "Overview" || child.label === module)) return -100;
-    return 10_000;
+    // Menus = last process stage (after numbered stages, before Email/Rule)
+    return 8000 + menusStageNumber;
   }
 
   const decorated: StagedNavChild<T>[] = children.map((child) => {
@@ -231,14 +248,19 @@ export function sortNavChildrenByProcessStage<T extends NavChildLike>(
     else if (isCompose) group = "Email Engine";
     else if (isRuleEngine) group = "Rule Engine";
     else if (processStage != null) group = "Process flow";
-    else if (!group) group = "More menus";
-    return { ...child, processStage, group };
+    else group = "Menus";
+
+    return {
+      ...child,
+      processStage: processStage ?? (isFlowGuide || isCompose || isRuleEngine ? undefined : menusStageNumber),
+      group
+    };
   });
 
   return decorated.sort((a, b) => {
-    const ra = bucketRank(a, a.processStage);
-    const rb = bucketRank(b, b.processStage);
+    const ra = bucketRank(a, a.processStage != null && a.group === "Process flow" ? a.processStage : undefined);
+    const rb = bucketRank(b, b.processStage != null && b.group === "Process flow" ? b.processStage : undefined);
     if (ra !== rb) return ra - rb;
-    return 0;
+    return a.label.localeCompare(b.label);
   });
 }

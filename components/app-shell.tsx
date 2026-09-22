@@ -41,6 +41,8 @@ import { EmailOutboxWorker } from "@/components/email/email-outbox-worker";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { cn } from "@/lib/utils";
 import { Badge, Button, EmptyAccess } from "@/components/ui";
+import { MfaSessionGuard } from "@/components/auth/mfa-session-guard";
+import { SessionIdleGuard } from "@/components/auth/session-idle-guard";
 
 function initialBootstrap() {
   if (typeof window === "undefined") return null;
@@ -52,10 +54,13 @@ function initialBootstrap() {
 
 export function AppShell({
   activeModule,
-  children
+  children,
+  shellMode = "app"
 }: {
   activeModule: ModuleKey;
   children: React.ReactNode;
+  /** portal = apps launcher (no module sidebar); app = single-module flat menus */
+  shellMode?: "app" | "portal";
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -229,29 +234,35 @@ export function AppShell({
   }
 
   return (
-    <AppShellChrome
-      activeModule={activeModule}
-      allowed={allowed}
-      pageAllowed={pageAllowed}
-      user={user}
-      tenant={tenant}
-      tenantId={tenantId}
-      tenantOptions={tenantOptions}
-      showCompanySwitcher={showCompanySwitcher}
-      syncingRemote={syncingRemote}
-      mobileNavOpen={mobileNavOpen}
-      setMobileNavOpen={setMobileNavOpen}
-      handleTenantChange={handleTenantChange}
-      logout={logout}
-      brand={brand}
-    >
-      {children}
-    </AppShellChrome>
+    <>
+      <SessionIdleGuard />
+      <MfaSessionGuard />
+      <AppShellChrome
+        activeModule={activeModule}
+        shellMode={shellMode}
+        allowed={allowed}
+        pageAllowed={pageAllowed}
+        user={user}
+        tenant={tenant}
+        tenantId={tenantId}
+        tenantOptions={tenantOptions}
+        showCompanySwitcher={showCompanySwitcher}
+        syncingRemote={syncingRemote}
+        mobileNavOpen={mobileNavOpen}
+        setMobileNavOpen={setMobileNavOpen}
+        handleTenantChange={handleTenantChange}
+        logout={logout}
+        brand={brand}
+      >
+        {children}
+      </AppShellChrome>
+    </>
   );
 }
 
 function AppShellChrome({
   activeModule,
+  shellMode,
   allowed,
   pageAllowed,
   user,
@@ -268,6 +279,7 @@ function AppShellChrome({
   children
 }: {
   activeModule: ModuleKey;
+  shellMode: "app" | "portal";
   allowed: boolean;
   pageAllowed: boolean;
   user: DemoUser;
@@ -284,121 +296,148 @@ function AppShellChrome({
   children: React.ReactNode;
 }) {
   const { openCompose } = useComposeEmail();
+  const isPortal = shellMode === "portal";
 
   return (
     <div className="min-h-[100dvh] overflow-x-hidden bg-[color:var(--bs-cloud)]">
-      {/* Desktop sidebar */}
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-[17.5rem] border-r border-[color:var(--bs-ink)]/10 bg-[color:var(--bs-ink)] text-white lg:block">
-        <div className="flex h-20 items-center gap-3 border-b border-white/10 px-5">
-          <div className="flex size-11 items-center justify-center rounded-[var(--bs-radius)] bg-[color:var(--bs-teal)] text-white shadow-sm">
-            <Building2 className="size-5" aria-hidden="true" />
-          </div>
-          <div>
-            <p className="text-base font-bold leading-tight text-white">{brand.productName}</p>
-            <p className="text-xs font-semibold uppercase tracking-wide text-teal-200">{brand.productTagline}</p>
-          </div>
-        </div>
-        <SidebarNav role={user.role} userEmail={user.email} tenantId={tenantId} />
-      </aside>
-
-      {/* Mobile drawer */}
-      <div
-        className={cn(
-          "fixed inset-0 z-40 lg:hidden",
-          mobileNavOpen ? "pointer-events-auto" : "pointer-events-none"
-        )}
-        aria-hidden={!mobileNavOpen}
-      >
-        <button
-          type="button"
-          className={cn(
-            "absolute inset-0 bg-black/50 transition-opacity",
-            mobileNavOpen ? "opacity-100" : "opacity-0"
-          )}
-          aria-label="Close navigation"
-          onClick={() => setMobileNavOpen(false)}
-        />
-        <aside
-          className={cn(
-            "absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-[color:var(--bs-ink)] text-white shadow-soft transition-transform duration-200 ease-out pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]",
-            mobileNavOpen ? "translate-x-0" : "-translate-x-full"
-          )}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Module navigation"
-        >
-          <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-white/10 px-4">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="flex size-10 shrink-0 items-center justify-center rounded-[var(--bs-radius)] bg-[color:var(--bs-teal)] text-white">
-                <Building2 className="size-5" aria-hidden="true" />
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-sm font-bold text-white">{brand.productName}</p>
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-teal-200">{brand.productTagline}</p>
-              </div>
+      {!isPortal ? (
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-[17.5rem] border-r border-[color:var(--bs-ink)]/10 bg-[color:var(--bs-ink)] text-white lg:block">
+          <div className="flex h-20 items-center gap-3 border-b border-white/10 px-5">
+            <div className="flex size-11 items-center justify-center rounded-[var(--bs-radius)] bg-[color:var(--bs-teal)] text-white shadow-sm">
+              <Building2 className="size-5" aria-hidden="true" />
             </div>
-            <button
-              type="button"
-              className="inline-flex size-11 items-center justify-center rounded-[var(--bs-radius)] text-white/80 hover:bg-white/10"
-              aria-label="Close menu"
-              onClick={() => setMobileNavOpen(false)}
-            >
-              <X className="size-5" aria-hidden="true" />
-            </button>
+            <div>
+              <p className="text-base font-bold leading-tight text-white">{brand.productName}</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-teal-200">{brand.productTagline}</p>
+            </div>
           </div>
-          <SidebarNav
-            role={user.role}
-            userEmail={user.email}
-            tenantId={tenantId}
-            className="h-auto flex-1"
-            onNavigate={() => setMobileNavOpen(false)}
-          />
+          <SidebarNav role={user.role} userEmail={user.email} tenantId={tenantId} activeModule={activeModule} />
         </aside>
-      </div>
+      ) : null}
 
-      <div className="lg:pl-[17.5rem]">
+      {!isPortal ? (
+        <div
+          className={cn(
+            "fixed inset-0 z-40 lg:hidden",
+            mobileNavOpen ? "pointer-events-auto" : "pointer-events-none"
+          )}
+          aria-hidden={!mobileNavOpen}
+        >
+          <button
+            type="button"
+            className={cn(
+              "absolute inset-0 bg-black/50 transition-opacity",
+              mobileNavOpen ? "opacity-100" : "opacity-0"
+            )}
+            aria-label="Close navigation"
+            onClick={() => setMobileNavOpen(false)}
+          />
+          <aside
+            className={cn(
+              "absolute inset-y-0 left-0 flex w-[min(20rem,88vw)] flex-col bg-[color:var(--bs-ink)] text-white shadow-soft transition-transform duration-200 ease-out pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]",
+              mobileNavOpen ? "translate-x-0" : "-translate-x-full"
+            )}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Module navigation"
+          >
+            <div className="flex h-16 shrink-0 items-center justify-between gap-2 border-b border-white/10 px-4">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-[var(--bs-radius)] bg-[color:var(--bs-teal)] text-white">
+                  <Building2 className="size-5" aria-hidden="true" />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-bold text-white">{brand.productName}</p>
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-teal-200">{brand.productTagline}</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="inline-flex size-11 items-center justify-center rounded-[var(--bs-radius)] text-white/80 hover:bg-white/10"
+                aria-label="Close menu"
+                onClick={() => setMobileNavOpen(false)}
+              >
+                <X className="size-5" aria-hidden="true" />
+              </button>
+            </div>
+            <SidebarNav
+              role={user.role}
+              userEmail={user.email}
+              tenantId={tenantId}
+              activeModule={activeModule}
+              className="h-auto flex-1"
+              onNavigate={() => setMobileNavOpen(false)}
+            />
+          </aside>
+        </div>
+      ) : null}
+
+      <div className={cn(!isPortal && "lg:pl-[17.5rem]")}>
         <header className="sticky top-0 z-20 border-b border-line bg-white/95 backdrop-blur pt-[env(safe-area-inset-top)]">
           <div className="flex min-h-14 items-center gap-2 px-3 py-2 sm:min-h-16 sm:gap-3 sm:px-4 lg:grid lg:min-h-20 lg:grid-cols-[1fr_minmax(240px,36rem)_1fr] lg:items-center lg:gap-3 lg:px-6 lg:py-3">
             <div className="flex min-w-0 items-center gap-2 lg:pr-2">
-              <button
-                type="button"
-                className="inline-flex size-11 shrink-0 items-center justify-center rounded-[var(--bs-radius)] border border-line bg-white text-ink lg:hidden"
-                aria-label="Open navigation menu"
-                aria-expanded={mobileNavOpen}
-                onClick={() => setMobileNavOpen(true)}
-              >
-                <Menu className="size-5" aria-hidden="true" />
-              </button>
+              {!isPortal ? (
+                <button
+                  type="button"
+                  className="inline-flex size-11 shrink-0 items-center justify-center rounded-[var(--bs-radius)] border border-line bg-white text-ink lg:hidden"
+                  aria-label="Open navigation menu"
+                  aria-expanded={mobileNavOpen}
+                  onClick={() => setMobileNavOpen(true)}
+                >
+                  <Menu className="size-5" aria-hidden="true" />
+                </button>
+              ) : null}
               <div className="min-w-0">
                 <p className="truncate text-[10px] font-bold uppercase tracking-wide text-teal sm:text-xs">{tenant.industry}</p>
-                <h1 className="truncate text-base font-bold text-ink sm:text-lg md:text-xl">{moduleLabels[activeModule]}</h1>
+                <h1 className="truncate text-base font-bold text-ink sm:text-lg md:text-xl">
+                  {isPortal ? "Apps" : moduleLabels[activeModule]}
+                </h1>
               </div>
             </div>
 
             <div className="hidden w-full justify-self-center lg:block">
-              <GlobalMenuSearch role={user.role} userEmail={user.email} tenantId={tenantId} />
+              {!isPortal ? (
+                <GlobalMenuSearch
+                  role={user.role}
+                  userEmail={user.email}
+                  tenantId={tenantId}
+                  moduleFilter={activeModule}
+                />
+              ) : null}
             </div>
 
             <div className="ml-auto flex shrink-0 items-center justify-end gap-1.5 sm:gap-2">
-              <Button
-                type="button"
-                className="hidden min-h-10 gap-1.5 px-3 sm:inline-flex"
-                onClick={() => openCompose({ sourceModule: activeModule })}
-                title="Compose email"
-              >
-                <Mail className="size-4" aria-hidden="true" />
-                <span className="text-sm font-bold">Compose</span>
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                className="inline-flex size-11 shrink-0 px-0 sm:hidden"
-                onClick={() => openCompose({ sourceModule: activeModule })}
-                title="Compose email"
-              >
-                <Mail className="size-4" aria-hidden="true" />
-                <span className="sr-only">Compose</span>
-              </Button>
+              {!isPortal ? (
+                <NavLink
+                  href="/apps"
+                  className="hidden rounded-[var(--bs-radius)] border border-line px-3 py-2 text-sm font-semibold text-ink hover:border-teal sm:inline-flex"
+                >
+                  All apps
+                </NavLink>
+              ) : null}
+              {!isPortal ? (
+                <>
+                  <Button
+                    type="button"
+                    className="hidden min-h-10 gap-1.5 px-3 sm:inline-flex"
+                    onClick={() => openCompose({ sourceModule: activeModule })}
+                    title="Compose email"
+                  >
+                    <Mail className="size-4" aria-hidden="true" />
+                    <span className="text-sm font-bold">Compose</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="inline-flex size-11 shrink-0 px-0 sm:hidden"
+                    onClick={() => openCompose({ sourceModule: activeModule })}
+                    title="Compose email"
+                  >
+                    <Mail className="size-4" aria-hidden="true" />
+                    <span className="sr-only">Compose</span>
+                  </Button>
+                </>
+              ) : null}
               <NotificationBell tenantId={tenantId} userEmail={user.email} />
               {showCompanySwitcher ? (
                 <label className="relative hidden min-[480px]:block">
@@ -436,46 +475,66 @@ function AppShellChrome({
             </div>
           </div>
 
-          <div className="border-t border-line px-3 py-2 lg:hidden">
-            <GlobalMenuSearch role={user.role} userEmail={user.email} tenantId={tenantId} />
-          </div>
+          {!isPortal ? (
+            <div className="border-t border-line px-3 py-2 lg:hidden">
+              <GlobalMenuSearch
+                role={user.role}
+                userEmail={user.email}
+                tenantId={tenantId}
+                moduleFilter={activeModule}
+              />
+            </div>
+          ) : null}
 
           {showCompanySwitcher ? (
-          <div className="flex gap-2 overflow-x-auto border-t border-line px-3 py-2 min-[480px]:hidden">
-            <label className="relative min-w-[9rem] flex-1">
-              <span className="sr-only">Switch company</span>
-              <select
-                value={tenantId}
-                onChange={(event) => handleTenantChange(event.target.value)}
-                className="bs-input bs-select h-10 w-full pl-3 text-sm font-semibold"
-              >
-                {tenantOptions.map((item) => (
-                  <option value={item.id} key={item.id}>
-                    {item.name}
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
+            <div className="flex gap-2 overflow-x-auto border-t border-line px-3 py-2 min-[480px]:hidden">
+              <label className="relative min-w-[9rem] flex-1">
+                <span className="sr-only">Switch company</span>
+                <select
+                  value={tenantId}
+                  onChange={(event) => handleTenantChange(event.target.value)}
+                  className="bs-input bs-select h-10 w-full pl-3 text-sm font-semibold"
+                >
+                  {tenantOptions.map((item) => (
+                    <option value={item.id} key={item.id}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            </div>
           ) : null}
         </header>
 
         <main className="bg-[color:var(--bs-cloud)] px-3 py-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] sm:px-4 md:px-6 md:py-6">
-          <div className="mb-4 flex flex-col gap-3 rounded-[var(--bs-radius)] border border-line bg-[color:var(--bs-card,#ffffff)] p-3 shadow-soft sm:mb-5 sm:p-4 md:flex-row md:items-center md:justify-between">
-            <div className="min-w-0">
-              <p className="truncate text-sm font-bold text-ink">{tenant.name}</p>
-              <p className="text-xs text-slate-500 sm:text-sm">
-                {tenant.region} business unit · {tenant.plan}
-              </p>
+          {!isPortal ? (
+            <div className="mb-4 flex flex-col gap-3 rounded-[var(--bs-radius)] border border-line bg-[color:var(--bs-card,#ffffff)] p-3 shadow-soft sm:mb-5 sm:p-4 md:flex-row md:items-center md:justify-between">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-ink">{tenant.name}</p>
+                <p className="text-xs text-slate-500 sm:text-sm">
+                  {tenant.region} business unit · {tenant.plan}
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge tone="info">{getRoleLabel(user.role)}</Badge>
+                {syncingRemote ? <Badge tone="warning">Syncing data…</Badge> : null}
+                <Badge tone={pageAllowed ? "success" : "danger"}>{pageAllowed ? "Access granted" : "Restricted"}</Badge>
+                <NavLink href="/apps" className="inline-flex items-center rounded-full border border-line px-3 py-1 text-xs font-semibold text-ink hover:border-teal md:hidden">
+                  All apps
+                </NavLink>
+              </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+          ) : (
+            <div className="mb-4 flex flex-col gap-2 rounded-[var(--bs-radius)] border border-line bg-white p-3 shadow-soft sm:mb-5 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+              <div className="min-w-0">
+                <p className="truncate text-sm font-bold text-ink">{tenant.name}</p>
+                <p className="text-xs text-slate-500">Choose an app to work in — each portal is separate</p>
+              </div>
               <Badge tone="info">{getRoleLabel(user.role)}</Badge>
-              {syncingRemote ? <Badge tone="warning">Syncing data…</Badge> : null}
-              <Badge tone={pageAllowed ? "success" : "danger"}>{pageAllowed ? "Access granted" : "Restricted"}</Badge>
             </div>
-          </div>
+          )}
           <div className="bs-page min-w-0" key={tenantId}>
-            {allowed && pageAllowed ? children : <EmptyAccess moduleName={moduleLabels[activeModule]} />}
+            {isPortal || (allowed && pageAllowed) ? children : <EmptyAccess moduleName={moduleLabels[activeModule]} />}
           </div>
         </main>
       </div>

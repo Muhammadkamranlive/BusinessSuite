@@ -6,17 +6,20 @@ import { useNavigation } from "@/components/navigation/navigation-provider";
 import { CornerDownLeft, Search, Sparkles } from "lucide-react";
 import { searchMenus, type MenuDefinition } from "@/lib/menu-registry";
 import { canMenu } from "@/modules/admin/services/acl.store";
-import type { RoleKey } from "@/lib/permissions";
+import type { ModuleKey, RoleKey } from "@/lib/permissions";
 import { cn } from "@/lib/utils";
 
 export function GlobalMenuSearch({
   role,
   userEmail,
-  tenantId
+  tenantId,
+  moduleFilter
 }: {
   role: RoleKey;
   userEmail: string;
   tenantId?: string;
+  /** When set, search only menus inside this app (decoupled portals). */
+  moduleFilter?: ModuleKey;
 }) {
   const router = useRouter();
   const { startNavigation } = useNavigation();
@@ -28,9 +31,10 @@ export function GlobalMenuSearch({
 
   const results = useMemo(() => {
     return searchMenus(query)
+      .filter((m) => (moduleFilter ? m.module === moduleFilter : true))
       .filter((m) => canMenu(role, userEmail, m.id, "view", tenantId))
       .slice(0, 10);
-  }, [query, role, userEmail, tenantId]);
+  }, [query, role, userEmail, tenantId, moduleFilter]);
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {

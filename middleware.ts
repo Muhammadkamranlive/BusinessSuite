@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 const protectedPrefixes = [
+  "/apps",
   "/dashboard",
   "/crm",
   "/sales",
@@ -32,11 +33,11 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // Logged-in users on auth screens go to ERP; unpaid companies are sent to /activate by AppShell.
+  // Logged-in users on auth screens go to the apps portal.
   if (session && (pathname === "/login" || pathname === "/signup")) {
-    const dashboardUrl = request.nextUrl.clone();
-    dashboardUrl.pathname = "/dashboard";
-    return NextResponse.redirect(dashboardUrl);
+    const appsUrl = request.nextUrl.clone();
+    appsUrl.pathname = "/apps";
+    return NextResponse.redirect(appsUrl);
   }
 
   return NextResponse.next();
@@ -49,6 +50,8 @@ export const config = {
     "/activate",
     "/billing",
     "/billing/:path*",
+    "/apps",
+    "/apps/:path*",
     "/dashboard/:path*",
     "/crm/:path*",
     "/sales/:path*",

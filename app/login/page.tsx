@@ -17,11 +17,13 @@ import { MktButton } from "@/components/marketing/mkt-button";
 import { Field, TextInput } from "@/components/ui";
 import { signInToWorkspace } from "@/lib/auth/login";
 import { ensureDemoAccounts } from "@/lib/auth/public-auth";
+import { setHmsMfaPending } from "@/lib/auth/hms-session-policy";
 import {
   isSupabaseAuthEnabled,
-  needsMfaChallenge,
+  mustCompleteMfaGate,
   signInWithPassword
 } from "@/lib/auth/supabase-mfa";
+import { pullHmsFromSupabase, userRequiresHmsMfa } from "@/modules/healthcare/services/hms.store";
 
 const trustPoints = [
   "Pay per app — 15 apps with role rights inside each license",
@@ -38,6 +40,8 @@ function LoginForm() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const idleReason = searchParams.get("reason") === "idle";
+
   useEffect(() => {
     ensureDemoAccounts();
   }, []);
@@ -48,6 +52,8 @@ function LoginForm() {
     setLoading(true);
     try {
       const account = await signInToWorkspace(email, password);
+      await pullHmsFromSupabase(account.tenantId).catch(() => undefined);
+      const hmsMfaRequired = userRequiresHmsMfa(account.email, account.tenantId);
 
       if (isSupabaseAuthEnabled()) {
         try {
@@ -57,17 +63,28 @@ function LoginForm() {
             body: JSON.stringify({ email, password, name: account.name })
           });
           await signInWithPassword(email, password);
-          if (await needsMfaChallenge()) {
+          if (await mustCompleteMfaGate(hmsMfaRequired)) {
+            setHmsMfaPending(hmsMfaRequired);
             router.push("/login/mfa");
             return;
           }
         } catch {
           /* Demo session already set; Supabase Auth optional until secret key + users exist */
+          if (hmsMfaRequired) {
+            setHmsMfaPending(true);
+            router.push("/login/mfa");
+            return;
+          }
         }
+      } else if (hmsMfaRequired) {
+        setHmsMfaPending(true);
+        router.push("/login/mfa");
+        return;
       }
 
+      setHmsMfaPending(false);
       const redirect = searchParams.get("redirect");
-      router.push(redirect && redirect.startsWith("/") ? redirect : "/dashboard");
+      router.push(redirect && redirect.startsWith("/") ? redirect : "/apps");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Login failed");
     } finally {
@@ -127,6 +144,11 @@ function LoginForm() {
             </p>
 
             <form onSubmit={onSubmit} className="mt-7 space-y-4">
+              {idleReason ? (
+                <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800" role="status">
+                  Your session ended after 15 minutes of inactivity. Sign in again to continue.
+                </p>
+              ) : null}
               {error ? (
                 <p className="rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700" role="alert">
                   {error}

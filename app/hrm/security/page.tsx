@@ -25,7 +25,7 @@ import {
 
 export default function SecurityPage() {
   const tenantId = getStoredTenantId() ?? "alpha";
-  const [form, setForm] = useState({ mfa_required: false, session_hours: 24, password_min_length: 8 });
+  const [form, setForm] = useState({ mfa_required: false, session_hours: 24, password_min_length: 12 });
   const [saved, setSaved] = useState(false);
   const [mfaStatus, setMfaStatus] = useState("");
   const [enrollQr, setEnrollQr] = useState<string | null>(null);
