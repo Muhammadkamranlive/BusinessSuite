@@ -236,7 +236,7 @@ export default function EmployeesPage() {
               <span>
                 Create a login for this employee
                 <span className="mt-1 block text-xs font-normal text-slate-500">
-                  They sign in with this email and password {DEMO_PASSWORD}. They only see their own timesheets, attendance, tasks, and documents.
+                  A starter password is set on the account; share it with the employee securely and ask them to change it at first sign-in. They only see their own timesheets, attendance, tasks, and documents.
                 </span>
               </span>
             </label>

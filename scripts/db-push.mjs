@@ -17,7 +17,9 @@ const EXPECTED = [
   "20260918000022_healthcare_pharmacy_marketplace.sql",
   "20260919000023_healthcare_hms_core.sql",
   "20260919000024_healthcare_hms_phases_2_4.sql",
-  "20260919000025_healthcare_hms_polish.sql"
+  "20260919000025_healthcare_hms_polish.sql",
+  "20260925000026_healthcare_hms_completion.sql",
+  "20260927000027_alif_pharmacy_core.sql"
 ];
 
 function listLocalMigrations() {
@@ -70,7 +72,7 @@ History may be out of sync. Repair then push again (example for HMS):
 
 console.log(`
 Notes:
-  • "Remote database is up to date" means migrations 22–25 are ALREADY applied
+  • "Remote database is up to date" means migrations 22–27 are ALREADY applied
     on this project (nothing left to push). That is success, not a failure.
   • Empty tables (rows≈0) are normal until the app syncs/seeds data.
   • To force re-apply a migration you must repair it to reverted first (destructive).

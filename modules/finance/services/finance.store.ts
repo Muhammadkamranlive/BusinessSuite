@@ -4,6 +4,7 @@ import { logCreate } from "@/modules/core/services/audit.service";
 import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } from "@/modules/core/services/entity-crud";
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import { queueOpsRemoteSync, registerOpsModule } from "@/modules/ops/services/ops-remote";
+import { isDemoTenant } from "@/lib/demo-tenants";
 
 function now() { return new Date().toISOString(); }
 function id() { return crypto.randomUUID(); }
@@ -284,6 +285,73 @@ export function postLedgerPair(
   });
 }
 
+function seedFinanceIfEmpty(tenantId: UUID): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  if (accounts.some((a) => a.tenant_id === tenantId && a.is_active !== false)) return false;
+  const ts = now();
+  const row = (
+    account_code: string,
+    account_name: string,
+    account_type: ChartAccount["account_type"]
+  ): ChartAccount => ({
+    id: id(),
+    tenant_id: tenantId,
+    account_code,
+    account_name,
+    account_type,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  accounts.unshift(
+    row("1000", "Cash", "asset"),
+    row("1100", "Accounts Receivable", "asset"),
+    row("1200", "Inventory", "asset"),
+    row("2000", "Accounts Payable", "liability"),
+    row("3000", "Owner Capital", "equity"),
+    row("4000", "Sales Revenue", "income"),
+    row("5000", "Operating Expenses", "expense")
+  );
+  taxes.unshift({
+    id: id(),
+    tenant_id: tenantId,
+    name: "Standard VAT",
+    rate: 5,
+    country: "AE",
+    status: "active",
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  income.unshift({
+    id: id(),
+    tenant_id: tenantId,
+    income_no: generateDocumentNumber(tenantId, "income"),
+    income_date: ts.slice(0, 10),
+    account_name: "Sales Revenue",
+    amount: 42800,
+    description: "June wholesale invoices",
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  expenses.unshift({
+    id: id(),
+    tenant_id: tenantId,
+    expense_no: generateDocumentNumber(tenantId, "expense"),
+    expense_date: ts.slice(0, 10),
+    account_name: "Operating Expenses",
+    amount: 12600,
+    description: "Warehouse rent",
+    payment_method: "bank",
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  persist();
+  return true;
+}
+
 registerOpsModule({
   build: () => ({
     accounts: accounts as unknown as Record<string, unknown>[],
@@ -299,5 +367,9 @@ registerOpsModule({
     if (snapshot.journals) journals = snapshot.journals as unknown as JournalEntry[];
     if (snapshot.taxes) taxes = snapshot.taxes as unknown as TaxRate[];
     savePersisted(STORAGE_KEY, { version: STORAGE_VERSION, accounts, expenses, income, journals, taxes });
+  },
+  seedIfEmpty: (tenantId) => {
+    ensureHydrated();
+    return seedFinanceIfEmpty(tenantId);
   }
 });

@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 260" width="480" height="260" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="wh-box-fill" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="var(--bs-illus-teal, #0d9488)"/>
+      <stop offset="100%" stop-color="color-mix(in srgb, var(--bs-illus-teal, #0d9488) 65%, #04302a)"/>
+    </linearGradient>
+    <style>
+      .wh-shelf { fill: none; stroke: currentColor; stroke-opacity: 0.18; stroke-width: 1.4; }
+      .wh-box { transform-box: fill-box; transform-origin: center; }
+      .wh-box rect { rx: 6; }
+      .wh-box.out { fill: url(#wh-box-fill); }
+      .wh-box.in { fill: var(--bs-illus-coral, #e4573d); }
+      .wh-box.b1 { animation: wh-move-out 5s ease-in-out infinite; }
+      .wh-box.b2 { animation: wh-move-out 5s ease-in-out infinite; animation-delay: 1.2s; }
+      .wh-box.b3 { animation: wh-move-in 5s ease-in-out infinite; animation-delay: 2.4s; }
+      .wh-fefo-arrow { stroke: currentColor; stroke-opacity: 0.5; stroke-width: 2; stroke-dasharray: 6 6; fill: none; animation: wh-dash 1.6s linear infinite; }
+      .wh-label { fill: currentColor; opacity: 0.6; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-anchor: middle; }
+      @keyframes wh-move-out {
+        0%, 12% { transform: translate(0,0); opacity: 1; }
+        45% { transform: translate(120px,-6px); opacity: 1; }
+        58%, 100% { transform: translate(180px,-4px); opacity: 0; }
+      }
+      @keyframes wh-move-in {
+        0%, 100% { transform: translate(0,0); opacity: 0; }
+        62% { transform: translate(-16px,0); opacity: 0; }
+        72% { opacity: 1; }
+        100% { transform: translate(-140px,0); opacity: 1; }
+      }
+      @keyframes wh-dash { to { stroke-dashoffset: -24; } }
+      
+    </style>
+  </defs>
+
+  <rect class="wh-shelf" x="30" y="40" width="420" height="46" rx="8"/>
+  <rect class="wh-shelf" x="30" y="106" width="420" height="46" rx="8"/>
+  <rect class="wh-shelf" x="30" y="172" width="420" height="46" rx="8"/>
+
+  <text class="wh-label" x="70" y="34">OLDEST</text>
+  <text class="wh-label" x="410" y="34">NEWEST</text>
+  <path class="wh-fefo-arrow" d="M 100 30 L 380 30"/>
+  <path d="M 372 24 L 386 30 L 372 36" fill="none" stroke="currentColor" stroke-opacity="0.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+
+  <g class="wh-box b1">
+    <rect class="out" x="46" y="52" width="34" height="24"/>
+  </g>
+  <g class="wh-box b2">
+    <rect class="out" x="46" y="118" width="34" height="24"/>
+  </g>
+  <g class="wh-box b3">
+    <rect class="in" x="380" y="184" width="34" height="24"/>
+  </g>
+
+  <rect class="wh-shelf" x="90" y="52" width="34" height="24" fill="none"/>
+  <rect class="wh-shelf" x="140" y="52" width="34" height="24" fill="none"/>
+</svg>

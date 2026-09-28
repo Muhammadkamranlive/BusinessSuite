@@ -4,10 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Ambulance,
   BedDouble,
+  Boxes,
   Building2,
   FlaskConical,
   HeartPulse,
+  KeyRound,
   Pill,
+  ShieldCheck,
   Stethoscope,
   Users,
   Video
@@ -122,6 +125,9 @@ export default function HealthcareHomePage() {
           <ActionCard href="/healthcare/branches" title="Branches" detail="Multi-site hospital registry" icon={Building2} />
           <ActionCard href="/healthcare/notifications" title="Notifications" detail="Prefs, alerts, message threads" icon={Users} />
           <ActionCard href="/healthcare/reports" title="Healthcare analytics" detail={`${analytics.low_stock_count} low stock · ${analytics.pending_labs} labs`} icon={FlaskConical} />
+          <ActionCard href="/healthcare/consumables" title="Consumables" detail="Non-pharmacy stock and movements" icon={Boxes} />
+          <ActionCard href="/healthcare/sso" title="Enterprise SSO" detail="OIDC/SAML stub — not live IdP" icon={KeyRound} />
+          <ActionCard href="/healthcare/hms-compliance" title="Compliance & PHI audit" detail="Break-glass, roles, audit trail" icon={ShieldCheck} />
         </div>
       </Panel>
       <Panel className="mb-4">

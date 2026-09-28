@@ -55,7 +55,7 @@ const BLOGS_KEY = "businesssuite:cms:blogs";
 const MENUS_KEY = "businesssuite:cms:menus";
 const PAGES_KEY = "businesssuite:cms:pages";
 const CONTACT_KEY = "businesssuite:cms:contact-inquiries";
-const SITE_SEED_KEY = "businesssuite:cms:site-v6";
+const SITE_SEED_KEY = "businesssuite:cms:site-v7";
 
 function now() {
   return new Date().toISOString();
@@ -100,7 +100,7 @@ const defaultBlogs: BlogPost[] = [
       "Most mid-market teams still run the business on a patchwork of Excel, email, and a handful of single-purpose apps. It works until it does not: a missed reorder, an unpaid invoice, a payroll exception that nobody can explain.\n\nBusinessSuite ERP Cloud is built for that moment. Sales, purchasing, inventory, operations, HR, hospital HMS, and finance share one company workspace, with role-based access so the warehouse never sees payroll and finance never overwrites CRM.\n\nImplementation is measured in days, not quarters. You create a company, choose Silver, Gold, Platinum, or Professional, activate with a card on file, and your teams start working in the same system of record.\n\nThe result is not another dashboard. It is fewer hand-offs, cleaner month-end, and a leadership view you can trust.",
     coverEmoji: "📈",
     coverImage: IMG.sales,
-    author: "Lauren Hale",
+    author: "BusinessSuite Editorial · Finance",
     status: "published",
     tags: ["Operations", "Leadership", "ERP"],
     createdAt: now(),
@@ -117,7 +117,7 @@ const defaultBlogs: BlogPost[] = [
       "Security conversations stall ERP deals when the product only offers “admin or not.” U.S. buyers expect least-privilege access, an audit trail, and the ability to revoke a single screen without taking down a module.\n\nBusinessSuite ships menu-level rights: View, Create, Update, and Delete. Company admins set the default matrix for each role, then grant or revoke exceptions for a named employee.\n\nSoft-delete recycle bins keep operational teams productive while administration retains a second line of recovery. Combined with Stripe-backed subscriptions, the platform is ready for a real commercial relationship — not a sandbox demo.",
     coverEmoji: "🔐",
     coverImage: IMG.admin,
-    author: "Marcus Ellison",
+    author: "BusinessSuite Editorial · Operations",
     status: "published",
     tags: ["Security", "Compliance", "Admin"],
     createdAt: now(),
@@ -134,7 +134,7 @@ const defaultBlogs: BlogPost[] = [
       "Distribution and light manufacturing teams lose margin in the gaps between sales and the warehouse. A quote that never became an order. A PO that never became a receipt. Stock that looks available until someone tries to pick it.\n\nBusinessSuite connects those documents in one tenant. Sales quotations convert to orders and invoices. Purchase orders receive against goods receipts with three-way match. Inventory movements, lots, serials, transfers, and adjustments stay visible. Plant work orders and BOMs sit in Operations when you are on Platinum.\n\nWhen finance closes the month, they are looking at the same numbers operations already used all week.",
     coverEmoji: "📦",
     coverImage: IMG.operations,
-    author: "Priya Nair",
+    author: "BusinessSuite Editorial · People",
     status: "published",
     tags: ["Inventory", "Sales", "Purchasing"],
     createdAt: now(),
@@ -151,7 +151,7 @@ const defaultBlogs: BlogPost[] = [
       "Clinics and light manufacturers often buy a hospital system and an ERP, then spend a year reconciling people, stock, and money.\n\nBusinessSuite keeps hospital CRUD (patients, appointments, OPD/IPD, pharmacy, lab orders, claims, quality) and plant CRUD (BOM, work orders, maintenance, inspections, fleet, contracts) in the same tenant as finance and HR. Imaging viewers, SMS reminders, and bank statement import remain on the third-party list until you are ready to wire them.\n\nPlatinum and Professional include both modules. Gold already has the commercial core: CRM, sales, procurement, inventory, HRM, and finance — including banks, lots, and debit notes inside those products.",
     coverEmoji: "🏥",
     coverImage: IMG.healthcare,
-    author: "Nadia Rahman",
+    author: "BusinessSuite Editorial · Healthcare",
     status: "published",
     tags: ["Healthcare", "Operations", "ERP"],
     createdAt: now(),
@@ -201,7 +201,7 @@ const defaultPages: CmsPage[] = [
     slug: "about",
     summary: "The cloud ERP built for operators who have outgrown disconnected tools — including hospitals and plants.",
     content:
-      "## Why we exist\nBusinessSuite ERP Cloud is a multi-tenant operations platform for growing companies — wholesale, distribution, services, light manufacturing, clinics and hospitals, and professional firms.\n\nWe built one product instead of a stack of apps: CRM and sales, procurement and inventory, plant operations, HR and payroll, hospital HMS (patients, OPD/IPD, pharmacy, lab), finance, projects, documents, and reporting. Every company gets an isolated workspace, branded documents, and access rights that match how real teams work.\n\nEmail, SMS, bank feeds, PACS, and payment gateways are listed under Administration → Third-party integrations and wired later — they do not block the CRUD you run day one.\n\n## How we sell\nOur commercial model is straightforward. You subscribe to Silver, Gold, Platinum, or Professional. Monthly and annual billing is processed securely on our site with Stripe. Your account activates when payment succeeds — the same motion you expect from a production SaaS product. Operations and Healthcare are included on Platinum and Professional.\n\n## Where we work\nLeadership is based in Austin, Texas. Support hours follow Eastern Time. We design for operators, controllers, clinicians, and department managers who need software that looks finished on day one.",
+      "## Why we exist\nBusinessSuite ERP Cloud is a multi-tenant operations platform for growing companies — wholesale, distribution, services, light manufacturing, clinics and hospitals, and professional firms.\n\nWe built one product instead of a stack of apps: CRM and sales, procurement and inventory, plant operations, HR and payroll, hospital HMS (patients, OPD/IPD, pharmacy, lab), finance, projects, documents, and reporting. Every company gets an isolated workspace, branded documents, and access rights that match how real teams work.\n\nEmail, SMS, bank feeds, PACS, and payment gateways are listed under Administration → Third-party integrations and wired later — they do not block the CRUD you run day one.\n\n## How we sell\nOur commercial model is straightforward. You subscribe to Silver, Gold, Platinum, or Professional. Monthly and annual billing is processed securely on our site with Stripe. Your account activates when payment succeeds — the same motion you expect from a production SaaS product. Operations and Healthcare are included on Platinum and Professional.\n\n## Where we work\nWe deploy wherever your company runs — shared SaaS, dedicated cloud or VPS in your region, your own hosting provider, or a fully offline intranet. Support follows your business day. We design for operators, controllers, clinicians, and department managers who need software that looks finished on day one.",
     sortOrder: 1,
     status: "published",
     createdAt: now(),

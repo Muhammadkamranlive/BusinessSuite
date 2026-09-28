@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 220" width="480" height="220" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="pp-person-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="var(--bs-illus-teal, #0d9488)"/>
+      <stop offset="100%" stop-color="var(--bs-illus-coral, #e4573d)"/>
+    </linearGradient>
+    <style>
+      .pp-person { fill: url(#pp-person-fill); }
+      .pp-person.dim { opacity: 0.55; }
+      .pp-coin { fill: var(--bs-illus-coral, #e4573d); animation: pp-rise 3s ease-in infinite; }
+      .pp-coin.c2 { animation-delay: 0.7s; fill: var(--bs-illus-teal, #0d9488); }
+      .pp-coin.c3 { animation-delay: 1.4s; }
+      .pp-coin.c4 { animation-delay: 2.1s; fill: var(--bs-illus-teal, #0d9488); }
+      .pp-cycle-ring { fill: none; stroke: currentColor; stroke-opacity: 0.18; stroke-width: 2; }
+      .pp-cycle-dot { fill: var(--bs-illus-teal, #0d9488); offset-path: path('M 240 40 A 76 76 0 1 1 239.9 40'); animation: pp-orbit 6s linear infinite; }
+      .pp-label { fill: currentColor; opacity: 0.6; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 11px; font-weight: 600; text-anchor: middle; letter-spacing: 0.05em; }
+      @keyframes pp-rise {
+        0% { transform: translateY(0); opacity: 0; }
+        15% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { transform: translateY(-70px); opacity: 0; }
+      }
+      @keyframes pp-orbit { to { offset-distance: 100%; } }
+      
+    </style>
+  </defs>
+
+  <circle class="pp-cycle-ring" cx="240" cy="116" r="76"/>
+  <circle class="pp-cycle-dot" r="6"/>
+  <text class="pp-label" x="240" y="26">PAY CYCLE</text>
+
+  <g transform="translate(150,150)">
+    <circle class="pp-person dim" cx="0" cy="-8" r="14"/>
+    <path class="pp-person dim" d="M -20 40 C -20 14 -12 2 0 2 C 12 2 20 14 20 40 Z"/>
+  </g>
+  <g transform="translate(240,150)">
+    <circle class="pp-person" cx="0" cy="-12" r="17"/>
+    <path class="pp-person" d="M -24 46 C -24 16 -14 0 0 0 C 14 0 24 16 24 46 Z"/>
+  </g>
+  <g transform="translate(330,150)">
+    <circle class="pp-person dim" cx="0" cy="-8" r="14"/>
+    <path class="pp-person dim" d="M -20 40 C -20 14 -12 2 0 2 C 12 2 20 14 20 40 Z"/>
+  </g>
+
+  <circle class="pp-coin c1" cx="150" cy="130" r="7"/>
+  <circle class="pp-coin c2" cx="240" cy="112" r="8"/>
+  <circle class="pp-coin c3" cx="330" cy="130" r="7"/>
+  <circle class="pp-coin c4" cx="195" cy="122" r="6"/>
+</svg>

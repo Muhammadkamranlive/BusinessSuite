@@ -3,6 +3,7 @@ import { generateDocumentNumber } from "@/modules/core/services/numbering.servic
 import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } from "@/modules/core/services/entity-crud";
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import { queueOpsRemoteSync, registerOpsModule } from "@/modules/ops/services/ops-remote";
+import { isDemoTenant } from "@/lib/demo-tenants";
 
 function now() { return new Date().toISOString(); }
 function id() { return crypto.randomUUID(); }
@@ -166,6 +167,55 @@ export function trashProjectTask(id: UUID) { ensureHydrated(); return trashEntit
 export function updateProjectTimesheet(id: UUID, data: Partial<ProjectTimesheet>) { ensureHydrated(); return updateEntityInCollection(timesheetRef, id, data); }
 export function trashProjectTimesheet(id: UUID) { ensureHydrated(); return trashEntityInCollection(timesheetRef, id); }
 
+function seedProjectsIfEmpty(tenantId: UUID): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  if (projects.some((p) => p.tenant_id === tenantId && p.is_active !== false)) return false;
+  const ts = now();
+  const project: Project = {
+    id: id(),
+    tenant_id: tenantId,
+    project_no: generateDocumentNumber(tenantId, "project"),
+    name: "Warehouse go-live",
+    customer_name: "Eastern Retail Group",
+    status: "active",
+    budget: 48000,
+    progress: 42,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  };
+  projects.unshift(project);
+  tasks.unshift({
+    id: id(),
+    tenant_id: tenantId,
+    project_id: project.id,
+    title: "Map bin locations",
+    status: "in_progress",
+    owner: "Operations",
+    due: ts.slice(0, 10),
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  timesheets.unshift({
+    id: id(),
+    tenant_id: tenantId,
+    person: "Ayesha Khan",
+    project_id: project.id,
+    project_name: project.name,
+    hours: 16,
+    week: ts.slice(0, 10),
+    status: "submitted",
+    billable: true,
+    rate: 45,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  persist();
+  return true;
+}
+
 registerOpsModule({
   build: () => ({
     projects: projects as unknown as Record<string, unknown>[],
@@ -177,5 +227,9 @@ registerOpsModule({
     if (snapshot.projectTasks) tasks = snapshot.projectTasks as unknown as ProjectTask[];
     if (snapshot.projectTimesheets) timesheets = snapshot.projectTimesheets as unknown as ProjectTimesheet[];
     savePersisted(STORAGE_KEY, { version: STORAGE_VERSION, projects, tasks, timesheets });
+  },
+  seedIfEmpty: (tenantId) => {
+    ensureHydrated();
+    return seedProjectsIfEmpty(tenantId);
   }
 });

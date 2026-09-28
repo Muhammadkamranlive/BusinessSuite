@@ -17,6 +17,7 @@ export type LandingMediaSlot =
   | "module.operations"
   | "module.hrm"
   | "module.healthcare"
+  | "module.pharmacy"
   | "module.finance"
   | "module.documents"
   | "module.projects"
@@ -52,7 +53,7 @@ export type LandingMediaSlotMeta = {
 
 export const LANDING_MEDIA_SLOTS: LandingMediaSlotMeta[] = [
   { key: "hero.dashboard", label: "Hero dashboard", group: "Landing page", hint: "Main image next to the homepage headline" },
-  { key: "testimonials.photo", label: "Testimonials photo", group: "Landing page", hint: "Beside “Run by people who run companies”" },
+  { key: "testimonials.photo", label: "Testimonials photo", group: "Landing page", hint: "Real people / team photo beside testimonials" },
   { key: "ruleEngine.showcase", label: "Rule Engine showcase", group: "Landing page", hint: "Laptop image in the Rule Engine section" },
 
   { key: "module.crm", label: "CRM module", group: "Module screenshots", hint: "Product / CRM laptop & cards" },
@@ -62,6 +63,7 @@ export const LANDING_MEDIA_SLOTS: LandingMediaSlotMeta[] = [
   { key: "module.operations", label: "Operations module", group: "Module screenshots", hint: "Product / Operations" },
   { key: "module.hrm", label: "HRM module", group: "Module screenshots", hint: "Product / HRM" },
   { key: "module.healthcare", label: "Healthcare module", group: "Module screenshots", hint: "Product / Healthcare" },
+  { key: "module.pharmacy", label: "Pharmacy module", group: "Module screenshots", hint: "Product / Alif Pharmacy POS" },
   { key: "module.finance", label: "Finance module", group: "Module screenshots", hint: "Product / Finance" },
   { key: "module.documents", label: "Documents module", group: "Module screenshots", hint: "Product / Documents" },
   { key: "module.projects", label: "Projects module", group: "Module screenshots", hint: "Product / Projects" },
@@ -70,13 +72,13 @@ export const LANDING_MEDIA_SLOTS: LandingMediaSlotMeta[] = [
   { key: "module.email-engine", label: "Email Engine module", group: "Module screenshots", hint: "Product / Email Engine" },
   { key: "module.rule-engine", label: "Rule Engine module", group: "Module screenshots", hint: "Product / Rule Engine page" },
 
-  { key: "photo.office", label: "Office / CMS photo", group: "Marketing pages", hint: "About / CMS side image" },
-  { key: "photo.support", label: "Support / Contact hero", group: "Marketing pages", hint: "Contact page hero" },
+  { key: "photo.office", label: "Office / CMS photo", group: "Marketing pages", hint: "Real office / meeting photo for About" },
+  { key: "photo.support", label: "Support / Contact hero", group: "Marketing pages", hint: "People photo for Contact" },
   { key: "photo.dashboard", label: "Security hero", group: "Marketing pages", hint: "Security page hero" },
   { key: "photo.warehouse", label: "Warehouse photo", group: "Marketing pages", hint: "Legacy warehouse visual" },
-  { key: "photo.collaboration", label: "Collaboration photo", group: "Marketing pages", hint: "Team / HR visual" },
-  { key: "photo.finance", label: "Finance photo", group: "Marketing pages", hint: "Finance marketing visual" },
-  { key: "photo.meeting", label: "Meeting photo", group: "Marketing pages", hint: "CRM meeting visual" },
+  { key: "photo.collaboration", label: "Collaboration photo", group: "Marketing pages", hint: "Team / diverse people photo" },
+  { key: "photo.finance", label: "Finance photo", group: "Marketing pages", hint: "Finance people photo" },
+  { key: "photo.meeting", label: "Meeting photo", group: "Marketing pages", hint: "Meeting / collaboration photo" },
 
   { key: "shot.executiveFlow", label: "Executive flow shot", group: "Extra screenshots", hint: "Flow diagram style shot" },
   { key: "shot.crmWorkflow", label: "CRM workflow shot", group: "Extra screenshots", hint: "CRM / automation workflow" },
@@ -91,7 +93,7 @@ export const LANDING_MEDIA_SLOTS: LandingMediaSlotMeta[] = [
 
 export const defaultLandingMedia: LandingMediaMap = {
   "hero.dashboard": `${P}/ExectiveDashboard-Admin.png`,
-  "testimonials.photo": `${P}/administration.png`,
+  "testimonials.photo": "/marketing/hero-team-diverse.png",
   "ruleEngine.showcase": `${P}/CRM-WORK-Flow.png`,
 
   "module.crm": `${P}/CRM-Dashboard.png`,
@@ -101,6 +103,7 @@ export const defaultLandingMedia: LandingMediaMap = {
   "module.operations": `${P}/OPRATIONS.png`,
   "module.hrm": `${P}/hrm.png`,
   "module.healthcare": `${P}/healthcare.png`,
+  "module.pharmacy": `${P}/healthcare.png`,
   "module.finance": `${P}/finance.png`,
   "module.documents": "/marketing/documentamangement.png",
   "module.projects": `${P}/project.png`,
@@ -109,13 +112,13 @@ export const defaultLandingMedia: LandingMediaMap = {
   "module.email-engine": `${P}/Compose-Email.png`,
   "module.rule-engine": `${P}/Exective-Dashboard-Flow.png`,
 
-  "photo.office": `${P}/administration.png`,
-  "photo.support": `${P}/healthcare.png`,
+  "photo.office": "/marketing/office-meeting.png",
+  "photo.support": "/marketing/hero-portrait-5.png",
   "photo.dashboard": `${P}/ExectiveDashboard-Admin.png`,
   "photo.warehouse": "/marketing/Erpinventroy.png",
-  "photo.collaboration": `${P}/hrm.png`,
-  "photo.finance": `${P}/finance.png`,
-  "photo.meeting": `${P}/CRM-Dashboard.png`,
+  "photo.collaboration": "/marketing/hero-team-diverse.png",
+  "photo.finance": "/marketing/hero-portrait-2.png",
+  "photo.meeting": "/marketing/office-meeting.png",
 
   "shot.executiveFlow": `${P}/Exective-Dashboard-Flow.png`,
   "shot.crmWorkflow": `${P}/CRM-WORK-Flow.png`,

@@ -10,6 +10,7 @@ import { DeploymentOptions } from "@/components/marketing/deployment-options";
 import { ModulePricingPicker } from "@/components/marketing/module-pricing-picker";
 import { InfraCompare } from "@/components/marketing/infra-compare";
 import { RuleEngineShowcase } from "@/components/marketing/rule-engine-showcase";
+import { LandingFaq } from "@/components/marketing/landing-faq";
 import type { BillingInterval } from "@/modules/billing/services/subscriptions.store";
 
 function PricingInner() {
@@ -43,20 +44,22 @@ function PricingInner() {
       <section id="pricing-packages" className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-12 md:px-6 md:py-16">
           <div className="flex justify-center">
-            <div className="inline-flex rounded-full border border-[#e6ebf1] bg-[#f6f9fc] p-1">
+            <div className="inline-flex rounded-full border border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)] p-1">
               <button
                 type="button"
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${interval === "month" ? "bg-[#0a2540] text-white" : "text-[#425466]"}`}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${interval === "month" ? "bg-[color:var(--bs-ink)] text-white shadow-sm" : "text-slate-600"}`}
                 onClick={() => setInterval("month")}
+                aria-pressed={interval === "month"}
               >
                 Monthly
               </button>
               <button
                 type="button"
-                className={`rounded-full px-4 py-2 text-sm font-semibold ${interval === "year" ? "bg-[#0a2540] text-white" : "text-[#425466]"}`}
+                className={`rounded-full px-4 py-2 text-sm font-semibold transition ${interval === "year" ? "bg-[color:var(--bs-ink)] text-white shadow-sm" : "text-slate-600"}`}
                 onClick={() => setInterval("year")}
+                aria-pressed={interval === "year"}
               >
-                Annual
+                Annual <span className="ml-1 text-[11px] font-bold text-emerald-500">save</span>
               </button>
             </div>
           </div>
@@ -67,7 +70,7 @@ function PricingInner() {
               onSelect={(pkg) => router.push(`/signup?plan=${pkg.code}&interval=${interval}`)}
             />
           </div>
-          <p className="mt-12 text-center text-sm text-[#425466]">
+          <p className="mt-12 text-center text-sm text-slate-600">
             Already subscribed?{" "}
             <Link href="/settings/billing" className="font-semibold text-[color:var(--bs-teal)] hover:underline">
               Open company billing
@@ -78,7 +81,7 @@ function PricingInner() {
             </Link>
           </p>
           <div className="mt-6 flex justify-center">
-            <MktCta href="/signup">Start company signup</MktCta>
+            <MktCta href="/signup">Create your company</MktCta>
           </div>
         </div>
       </section>
@@ -86,6 +89,7 @@ function PricingInner() {
       <ModulePricingPicker />
       <InfraCompare />
       <DeploymentOptions />
+      <LandingFaq />
     </PublicSiteShell>
   );
 }

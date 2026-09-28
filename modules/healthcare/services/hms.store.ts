@@ -1,6 +1,8 @@
 import type { UUID } from "@/modules/core/types";
+import { redactPatientForLog } from "@/lib/healthcare/phi-redaction";
 import { generateDocumentNumber } from "@/modules/core/services/numbering.service";
 import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } from "@/modules/core/services/entity-crud";
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import type {
   HmsAllergy,
   HmsAppointment,
@@ -18,6 +20,7 @@ import type {
   HmsRoleAssignment
 } from "@/modules/healthcare/model/hms-core";
 import type { HmsRemoteSnapshot } from "@/modules/healthcare/services/hms.supabase-sync";
+import { emitSecurityAlert } from "@/lib/healthcare/security-alerts";
 import { queueAppointmentReminder, rescheduleAppointmentReminder } from "@/modules/healthcare/services/hms-reminders";
 
 export type * from "@/modules/healthcare/model/hms-core";
@@ -31,6 +34,8 @@ function today() {
 function id() {
   return crypto.randomUUID();
 }
+
+const STORAGE_KEY = "businesssuite:hms-core:v1";
 
 let patients: HmsPatient[] = [];
 let consents: HmsPatientConsent[] = [];
@@ -47,6 +52,7 @@ let breakGlass: HmsBreakGlass[] = [];
 let roles: HmsRoleAssignment[] = [];
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingTenantId: string | undefined;
+let hydrated = false;
 
 const EVENT = "businesssuite:hms-changed";
 
@@ -58,7 +64,31 @@ function syncEnabled() {
   return process.env.NEXT_PUBLIC_HMS_USE_SUPABASE !== "false";
 }
 
+function applySnapshot(s: HmsRemoteSnapshot) {
+  patients = s.patients ?? [];
+  consents = s.consents ?? [];
+  appointments = s.appointments ?? [];
+  encounters = s.encounters ?? [];
+  notes = s.notes ?? [];
+  problems = s.problems ?? [];
+  allergies = s.allergies ?? [];
+  medications = s.medications ?? [];
+  invoices = s.invoices ?? [];
+  payments = s.payments ?? [];
+  auditLogs = (s.auditLogs ?? []).slice(0, 500);
+  breakGlass = s.breakGlass ?? [];
+  roles = s.roles ?? [];
+}
+
+function ensureHydrated() {
+  if (hydrated || typeof window === "undefined") return;
+  hydrated = true;
+  const snap = loadPersisted<HmsRemoteSnapshot>(STORAGE_KEY);
+  if (snap?.version === 1) applySnapshot(snap);
+}
+
 export function buildHmsSnapshot(tenantId?: string): HmsRemoteSnapshot {
+  ensureHydrated();
   const f = <T extends { tenant_id: string }>(rows: T[]) =>
     tenantId ? rows.filter((r) => r.tenant_id === tenantId) : rows;
   return {
@@ -82,6 +112,8 @@ export function buildHmsSnapshot(tenantId?: string): HmsRemoteSnapshot {
 
 export function queueHmsRemoteSync(tenantId?: string, immediate = false) {
   if (typeof window === "undefined" || !syncEnabled()) return;
+  ensureHydrated();
+  savePersisted(STORAGE_KEY, buildHmsSnapshot());
   if (tenantId) pendingTenantId = tenantId;
   const push = () => {
     const tid = pendingTenantId;
@@ -101,13 +133,17 @@ export function queueHmsRemoteSync(tenantId?: string, immediate = false) {
   syncTimer = setTimeout(push, 600);
 }
 
-function persist(tenantId?: string) {
+/** Session cache + durable Supabase push (DB is source of truth). */
+function persist(tenantId?: string, immediate = false) {
+  ensureHydrated();
+  savePersisted(STORAGE_KEY, buildHmsSnapshot());
   emit();
-  queueHmsRemoteSync(tenantId);
+  queueHmsRemoteSync(tenantId, immediate);
 }
 
 export async function pullHmsFromSupabase(tenantId: string) {
   if (typeof window === "undefined" || !syncEnabled()) return false;
+  ensureHydrated();
   try {
     const res = await fetch(`/api/healthcare/hms-sync?tenantId=${encodeURIComponent(tenantId)}`);
     const json = (await res.json()) as { ok?: boolean; skipped?: boolean; snapshot?: HmsRemoteSnapshot };
@@ -130,6 +166,7 @@ export async function pullHmsFromSupabase(tenantId: string) {
     auditLogs = keep(auditLogs, s.auditLogs).slice(0, 500);
     breakGlass = keep(breakGlass, s.breakGlass);
     roles = keep(roles, s.roles);
+    savePersisted(STORAGE_KEY, buildHmsSnapshot());
     emit();
     return true;
   } catch {
@@ -161,16 +198,6 @@ export function appendPhiAudit(
   return row;
 }
 
-function redactPatientForLog(p: Partial<HmsPatient>) {
-  return {
-    id: p.id,
-    mrn: p.mrn,
-    status: p.status,
-    anonymized: p.anonymized
-    // never log name/phone/email/national_id to generic logs — only IDs in audit diffs when needed
-  };
-}
-
 function nextMrn(tenantId: UUID) {
   const year = new Date().getFullYear().toString().slice(-2);
   const seq = patients.filter((p) => p.tenant_id === tenantId).length + 1;
@@ -192,6 +219,7 @@ export function findDuplicatePatients(
 }
 
 export function listPatients(tenantId: UUID) {
+  ensureHydrated();
   return patients
     .filter((p) => p.tenant_id === tenantId && p.is_active !== false && !p.anonymized)
     .sort((a, b) => a.full_name.localeCompare(b.full_name));
@@ -803,6 +831,13 @@ export function requestBreakGlass(
     justification: row.justification,
     break_glass: true,
     after_diff: { patient_mrn: row.patient_mrn, alerted: true }
+  });
+  emitSecurityAlert({
+    kind: "break_glass",
+    tenantId,
+    email: input.actor_email,
+    title: "Break-glass access used",
+    message: "Emergency break-glass access was requested. Review HMS compliance audit logs."
   });
   persist(tenantId);
   return row;

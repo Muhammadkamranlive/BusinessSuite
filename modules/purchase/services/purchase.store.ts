@@ -7,6 +7,7 @@ import { linesSubtotal, normalizeLines, type DocumentLine } from "@/modules/ops/
 import { getProductStock, listLowStock, listProducts, listWarehouses, postStockMovement } from "@/modules/inventory/services/inventory.store";
 import { postLedgerPair } from "@/modules/finance/services/finance.store";
 import { queueOpsRemoteSync, registerOpsModule } from "@/modules/ops/services/ops-remote";
+import { isDemoTenant } from "@/lib/demo-tenants";
 
 function now() { return new Date().toISOString(); }
 function id() { return crypto.randomUUID(); }
@@ -656,6 +657,50 @@ export function trashRequisition(id: UUID) { ensureHydrated(); return trashEntit
 export function updateRfq(id: UUID, data: Partial<PurchaseRfq>) { ensureHydrated(); return updateEntityInCollection(rfqRef, id, data); }
 export function trashRfq(id: UUID) { ensureHydrated(); return trashEntityInCollection(rfqRef, id); }
 
+function seedPurchasesIfEmpty(tenantId: UUID): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  if (suppliers.some((s) => s.tenant_id === tenantId && s.is_active !== false)) return false;
+  const product = listProducts(tenantId)[0];
+  const ts = now();
+  const supplier: Supplier = {
+    id: id(),
+    tenant_id: tenantId,
+    supplier_no: generateDocumentNumber(tenantId, "supplier"),
+    name: "Gulf Packaging FZE",
+    email: "orders@gulfpack.example",
+    phone: "+971 4 555 0100",
+    contact_person: "Nadia Rahman",
+    status: "active",
+    category: "Packaging",
+    payment_terms: "Net 30",
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  };
+  suppliers.unshift(supplier);
+  const lines = product
+    ? [{ product_id: product.id, sku: product.sku, description: product.name, quantity: 24, unit_price: product.purchase_price }]
+    : [{ product_id: null, sku: "SKU-1001", description: "Cotton bale 480lb", quantity: 24, unit_price: 420 }];
+  const total_amount = linesSubtotal(lines);
+  purchaseOrders.unshift({
+    id: id(),
+    tenant_id: tenantId,
+    purchase_order_no: generateDocumentNumber(tenantId, "purchase_order"),
+    supplier_id: supplier.id,
+    supplier_name: supplier.name,
+    order_date: today(),
+    expected_delivery_date: today(),
+    status: "sent",
+    total_amount,
+    lines,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  persist();
+  return true;
+}
+
 registerOpsModule({
   build: () => ({
     suppliers: suppliers as unknown as Record<string, unknown>[],
@@ -690,5 +735,9 @@ registerOpsModule({
       vendorQuotes,
       matchTolerances
     });
+  },
+  seedIfEmpty: (tenantId) => {
+    ensureHydrated();
+    return seedPurchasesIfEmpty(tenantId);
   }
 });

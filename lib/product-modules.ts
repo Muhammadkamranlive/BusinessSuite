@@ -182,10 +182,11 @@ export const productModules: ProductModule[] = [
     title: "Healthcare",
     eyebrow: "Hospital & clinic (HMS)",
     summary:
-      "Hospital HMS on real screens: patients, OPD/IPD, pharmacy, lab, radiology, EMR, OT, nursing, and insurance claims — same login as finance and HR.",
+      "HIPAA-ready hospital HMS on real screens: patients, OPD/IPD, pharmacy, lab, radiology, EMR, OT, nursing, and insurance claims — PHI audit, break-glass, and the same login as finance and HR.",
     image: moduleScreenshot.healthcare,
     heroCaption: "Healthcare HMS — patients, wards, pharmacy, lab, and claims",
     highlights: [
+      "HIPAA-aligned PHI controls — role rights, MFA session guard, and append-only access audit",
       "MRN-style patients, doctors, appointments, OPD tokens, and ED triage",
       "Wards, beds, admissions, nursing notes, vitals, and duty rosters",
       "Prescriptions, pharmacy stock, dispensing, lab catalog and results, radiology orders",
@@ -206,7 +207,37 @@ export const productModules: ProductModule[] = [
       "EMR notes",
       "OT / surgeries",
       "Insurance & claims",
-      "Quality & PHC audit"
+      "Quality & PHC audit",
+      "HIPAA / PHI compliance audit"
+    ]
+  },
+  {
+    slug: "pharmacy",
+    title: "Alif Pharmacy",
+    eyebrow: "Medical shop POS & stock",
+    summary:
+      "A pharmacy point of sale that talks to the ledger: barcode POS, batch and expiry stock, prescriptions, supplier purchases, customers on credit, and end-of-day reports — standalone or linked to the hospital HMS.",
+    image: moduleScreenshot.pharmacy,
+    heroCaption: "Alif Pharmacy — POS counter, batch stock, prescriptions, and daily sales",
+    highlights: [
+      "Touch POS with barcode scan, hold/recall, split tender, and printed receipts",
+      "Batch, lot, and expiry tracking with near-expiry and low-stock alerts",
+      "Prescriptions dispensed against doctor orders — shared with Healthcare HMS",
+      "Supplier purchases, returns, and credit customers posted to Finance"
+    ],
+    includes: [
+      "POS counter",
+      "Products & barcodes",
+      "Batches & expiry",
+      "Inventory & stock counts",
+      "Prescriptions",
+      "Customers & credit",
+      "Suppliers & purchases",
+      "Sales & returns",
+      "Compose email",
+      "Automations",
+      "Reports",
+      "Recycle bin"
     ]
   },
   {

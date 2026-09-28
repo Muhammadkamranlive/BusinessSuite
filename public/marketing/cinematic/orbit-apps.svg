@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" width="480" height="480" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <radialGradient id="orbit-core-glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="var(--bs-illus-teal, #0d9488)" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="var(--bs-illus-teal, #0d9488)" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="orbit-core-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="var(--bs-illus-teal, #0d9488)"/>
+      <stop offset="100%" stop-color="var(--bs-illus-coral, #e4573d)"/>
+    </linearGradient>
+    <style>
+      .orbit-ring { fill: none; stroke: currentColor; stroke-opacity: 0.16; stroke-width: 1.2; }
+      .orbit-group-1 { transform-origin: 240px 240px; animation: orbit-spin 26s linear infinite; }
+      .orbit-group-2 { transform-origin: 240px 240px; animation: orbit-spin-rev 34s linear infinite; }
+      .orbit-group-3 { transform-origin: 240px 240px; animation: orbit-spin 44s linear infinite; }
+      .orbit-node circle.node-dot { fill: var(--bs-illus-surface, #fff); stroke: var(--bs-illus-teal, #0d9488); stroke-width: 2.5; }
+      .orbit-node text { fill: currentColor; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13px; font-weight: 600; text-anchor: middle; }
+      .orbit-node.accent circle.node-dot { stroke: var(--bs-illus-coral, #e4573d); }
+      .orbit-core-pulse { animation: orbit-pulse 3.2s ease-in-out infinite; transform-origin: 240px 240px; }
+      @keyframes orbit-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      @keyframes orbit-spin-rev { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+      @keyframes orbit-pulse {
+        0%, 100% { opacity: 0.55; transform: scale(1); }
+        50% { opacity: 0.9; transform: scale(1.08); }
+      }
+      
+    </style>
+  </defs>
+
+  <circle class="orbit-ring" cx="240" cy="240" r="90"/>
+  <circle class="orbit-ring" cx="240" cy="240" r="150"/>
+  <circle class="orbit-ring" cx="240" cy="240" r="205"/>
+
+  <circle class="orbit-core-pulse" cx="240" cy="240" r="86" fill="url(#orbit-core-glow)"/>
+  <circle cx="240" cy="240" r="52" fill="url(#orbit-core-fill)"/>
+  <text x="240" y="236" text-anchor="middle" fill="#fff" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700">Business</text>
+  <text x="240" y="252" text-anchor="middle" fill="#fff" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13" font-weight="700">Suite</text>
+
+  <g class="orbit-group-1">
+    <g class="orbit-node" transform="translate(240,90)">
+      <circle class="node-dot" r="22"/>
+      <text y="42">HRM</text>
+    </g>
+    <g class="orbit-node accent" transform="translate(390,240)">
+      <circle class="node-dot" r="22"/>
+      <text y="42">CRM</text>
+    </g>
+    <g class="orbit-node" transform="translate(240,390)">
+      <circle class="node-dot" r="22"/>
+      <text y="42">Sales</text>
+    </g>
+  </g>
+
+  <g class="orbit-group-2">
+    <g class="orbit-node accent" transform="translate(345.9,134.1)">
+      <circle class="node-dot" r="19"/>
+      <text y="38">Finance</text>
+    </g>
+    <g class="orbit-node" transform="translate(134.1,345.9)">
+      <circle class="node-dot" r="19"/>
+      <text y="38">Payroll</text>
+    </g>
+  </g>
+
+  <g class="orbit-group-3">
+    <g class="orbit-node" transform="translate(85.1,85.1)">
+      <circle class="node-dot" r="18"/>
+      <text y="36">Health</text>
+    </g>
+    <g class="orbit-node accent" transform="translate(394.9,85.1)">
+      <circle class="node-dot" r="18"/>
+      <text y="36">Inventory</text>
+    </g>
+    <g class="orbit-node" transform="translate(240,35)">
+      <circle class="node-dot" r="18"/>
+      <text y="36">Pharmacy</text>
+    </g>
+  </g>
+</svg>

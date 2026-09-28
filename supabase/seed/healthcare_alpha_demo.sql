@@ -33,7 +33,9 @@ begin
     'hms_emr_attachments','hms_lab_results','hms_dispenses','hms_mar','hms_vitals',
     'hms_transfers','hms_payments','hms_break_glass','hms_phi_audit_logs',
     'hms_insurance_claims','hms_telemedicine_sessions','hms_ambulance_dispatches',
-    'hms_emergency_intakes','hms_duty_rosters','hms_equipment_assets','hms_staff',
+    'hms_emergency_intakes','hms_duty_rosters','hms_equipment_assets','hms_staff_attendance',
+    'hms_consumable_movements','hms_consumables','hms_quality_indicators','hms_regulatory_reports',
+    'hms_sso_configs','hms_staff',
     'hms_imaging_orders','hms_lab_orders','hms_prescriptions','hms_pharmacy_stock',
     'hms_admissions','hms_beds','hms_wards','hms_branches',
     'hms_clinical_notes','hms_problem_list','hms_allergy_list','hms_medication_list',
@@ -342,6 +344,61 @@ insert into public.hms_break_glass (
   ('a1010000-0000-4000-8000-000000000591', '00000000-0000-0000-0000-000000000101', 'admin@demo.com',
    'a1010000-0000-4000-8000-000000000005', 'MRN-ALPHA-0005', 'Emergency chart review for ICU transfer coordination', true, now() + interval '1 hour');
 
+-- ---------------------------------------------------------------------------
+-- Gap fills: consumables, SSO, attendance, quality KPIs, regulatory
+-- (menus that previously opened empty for Alpha)
+-- ---------------------------------------------------------------------------
+insert into public.hms_consumables (
+  id, tenant_id, sku, name, category, quantity, reorder_level, unit, location, is_active
+) values
+  ('a1010000-0000-4000-8000-000000000701', '00000000-0000-0000-0000-000000000101', 'CNS-GLV-M', 'Nitrile gloves M', 'PPE', 420, 100, 'box', 'Central store', true),
+  ('a1010000-0000-4000-8000-000000000702', '00000000-0000-0000-0000-000000000101', 'CNS-SYR-5', 'Syringe 5ml', 'Injection', 85, 120, 'box', 'Ward store', true),
+  ('a1010000-0000-4000-8000-000000000703', '00000000-0000-0000-0000-000000000101', 'CNS-IV-S', 'IV set standard', 'Infusion', 160, 40, 'each', 'ICU store', true),
+  ('a1010000-0000-4000-8000-000000000704', '00000000-0000-0000-0000-000000000101', 'CNS-MASK', 'Surgical mask 3-ply', 'PPE', 900, 200, 'box', 'Central store', true),
+  ('a1010000-0000-4000-8000-000000000705', '00000000-0000-0000-0000-000000000101', 'CNS-CATH', 'Foley catheter 16Fr', 'Urology', 28, 25, 'each', 'OT store', true);
+
+insert into public.hms_consumable_movements (
+  id, tenant_id, consumable_id, qty_delta, reason, created_by
+) values
+  ('a1010000-0000-4000-8000-000000000711', '00000000-0000-0000-0000-000000000101', 'a1010000-0000-4000-8000-000000000701', 50, 'Ward issue — OPD', 'seed'),
+  ('a1010000-0000-4000-8000-000000000712', '00000000-0000-0000-0000-000000000101', 'a1010000-0000-4000-8000-000000000702', -20, 'Stock issue — ED', 'seed'),
+  ('a1010000-0000-4000-8000-000000000713', '00000000-0000-0000-0000-000000000101', 'a1010000-0000-4000-8000-000000000703', 30, 'PO receive', 'seed');
+
+insert into public.hms_sso_configs (
+  id, tenant_id, provider, issuer_url, client_id, client_secret_ref, enabled, notes, is_active
+) values
+  ('a1010000-0000-4000-8000-000000000721', '00000000-0000-0000-0000-000000000101', 'oidc',
+   'https://login.microsoftonline.com/alpha-demo/v2.0', 'alpha-hms-oidc-client',
+   'vault://stub-not-configured', false, 'Demo OIDC stub — enable after IdP credentials are stored', true);
+
+insert into public.hms_staff_attendance (
+  id, tenant_id, staff_id, work_date, check_in, check_out, status, is_active
+) values
+  ('a1010000-0000-4000-8000-000000000731', '00000000-0000-0000-0000-000000000101', 'a1010000-0000-4000-8000-000000000451',
+   current_date, date_trunc('day', now()) + interval '8 hours', date_trunc('day', now()) + interval '16 hours', 'present', true),
+  ('a1010000-0000-4000-8000-000000000732', '00000000-0000-0000-0000-000000000101', 'a1010000-0000-4000-8000-000000000453',
+   current_date, date_trunc('day', now()) + interval '7 hours', date_trunc('day', now()) + interval '15 hours', 'present', true),
+  ('a1010000-0000-4000-8000-000000000733', '00000000-0000-0000-0000-000000000101', 'a1010000-0000-4000-8000-000000000452',
+   current_date, null, null, 'leave', true);
+
+insert into public.hms_quality_indicators (
+  id, tenant_id, code, name, period, value_text, target_text, status, notes, is_active
+) values
+  ('a1010000-0000-4000-8000-000000000741', '00000000-0000-0000-0000-000000000101', 'HH-COMP', 'Hand hygiene compliance',
+   to_char(current_date, 'YYYY-MM'), '94%', '≥90%', 'on_track', 'Monthly audit sample', true),
+  ('a1010000-0000-4000-8000-000000000742', '00000000-0000-0000-0000-000000000101', 'FALL-RATE', 'Inpatient fall rate / 1000 bed-days',
+   to_char(current_date, 'YYYY-MM'), '1.8', '≤2.0', 'on_track', null, true),
+  ('a1010000-0000-4000-8000-000000000743', '00000000-0000-0000-0000-000000000101', 'OR-TURN', 'OR turnaround minutes',
+   to_char(current_date, 'YYYY-MM'), '38', '≤30', 'at_risk', 'Scheduling bottleneck on Thu', true);
+
+insert into public.hms_regulatory_reports (
+  id, tenant_id, template_key, region, title, period_start, period_end, payload, status, generated_at
+) values
+  ('a1010000-0000-4000-8000-000000000751', '00000000-0000-0000-0000-000000000101', 'phc_monthly', 'AE',
+   'PHC monthly compliance pack', date_trunc('month', current_date)::date,
+   (date_trunc('month', current_date) + interval '1 month - 1 day')::date,
+   '{"score":88,"auditor":"Quality lead"}'::jsonb, 'generated', now());
+
 -- Catalog masters still used by leftover catalog tabs (doctors, lab tests, etc.)
 delete from public.catalog_records
  where tenant_id = '00000000-0000-0000-0000-000000000101'
@@ -375,6 +432,18 @@ insert into public.catalog_records (id, tenant_id, slug, status, payload, is_act
   ('a1010000-0000-4000-8000-000000000613', '00000000-0000-0000-0000-000000000101', 'healthcare.cssd', 'active',
    '{"load_no":"CSSD-001","items":"Surgical trays","cycle":"steam","status":"passed"}'::jsonb, true),
   ('a1010000-0000-4000-8000-000000000614', '00000000-0000-0000-0000-000000000101', 'healthcare.phc_audit', 'active',
-   '{"checklist":"PHC monthly","score":88,"auditor":"Quality lead","status":"completed"}'::jsonb, true);
+   '{"checklist":"PHC monthly","score":88,"auditor":"Quality lead","status":"completed"}'::jsonb, true),
+  ('a1010000-0000-4000-8000-000000000615', '00000000-0000-0000-0000-000000000101', 'healthcare.doctors', 'active',
+   '{"code":"DR-003","full_name":"Dr. Sana Malik","specialty":"Pediatrics","pmc_no":"DHA-99110","phone":"+971551001004","fee":280}'::jsonb, true),
+  ('a1010000-0000-4000-8000-000000000616', '00000000-0000-0000-0000-000000000101', 'healthcare.lab_tests', 'active',
+   '{"code":"LT-LFT","name":"Liver Function Panel","specimen":"Blood","tat_hours":6}'::jsonb, true),
+  ('a1010000-0000-4000-8000-000000000617', '00000000-0000-0000-0000-000000000101', 'healthcare.ot', 'active',
+   '{"case_no":"OT-002","patient_name":"Maryam Saeed","procedure":"Appendectomy","status":"completed"}'::jsonb, true),
+  ('a1010000-0000-4000-8000-000000000618', '00000000-0000-0000-0000-000000000101', 'healthcare.consents', 'active',
+   '{"patient_name":"Omar Rahman","consent_type":"surgery","version":"1.0"}'::jsonb, true),
+  ('a1010000-0000-4000-8000-000000000619', '00000000-0000-0000-0000-000000000101', 'healthcare.infection', 'active',
+   '{"case_no":"IC-002","organism":"MRSA screen negative","ward":"Surgical","status":"monitoring"}'::jsonb, true),
+  ('a1010000-0000-4000-8000-000000000620', '00000000-0000-0000-0000-000000000101', 'healthcare.cssd', 'active',
+   '{"load_no":"CSSD-002","items":"Endoscope tray","cycle":"ETO","status":"in_progress"}'::jsonb, true);
 
 commit;

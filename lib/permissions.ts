@@ -8,6 +8,7 @@ import {
   HeartPulse,
   Landmark,
   Network,
+  Pill,
   Receipt,
   Settings,
   ShoppingCart,
@@ -26,6 +27,7 @@ export type ModuleKey =
   | "operations"
   | "hrm"
   | "healthcare"
+  | "pharmacy"
   | "documents"
   | "finance"
   | "projects"
@@ -110,6 +112,7 @@ export const moduleLabels: Record<ModuleKey, string> = {
   operations: "Operations",
   hrm: "HRM",
   healthcare: "Healthcare",
+  pharmacy: "Alif Pharmacy",
   documents: "Document Management",
   finance: "Finance",
   projects: "Projects",
@@ -294,18 +297,6 @@ export const rawNavGroups: NavGroup[] = [
       { label: "Lab tests", href: "/healthcare/lab-tests", permission: "healthcare.lab_tests.view", group: "Diagnostics" },
       { label: "Lab orders", href: "/healthcare/lab-orders", permission: "healthcare.lab_orders.view", group: "Diagnostics" },
       { label: "Radiology orders", href: "/healthcare/radiology", permission: "healthcare.radiology.view", group: "Diagnostics" },
-      { label: "Pharmacy items", href: "/healthcare/pharmacy", permission: "healthcare.pharmacy.view", group: "Pharmacy" },
-      { label: "Pharmacy orders", href: "/healthcare/pharmacy-orders", permission: "healthcare.pharmacy_orders.view", group: "Pharmacy" },
-      { label: "Dispensing", href: "/healthcare/dispensing", permission: "healthcare.dispensing.view", group: "Pharmacy" },
-      { label: "Rx marketplace", href: "/healthcare/marketplace", permission: "healthcare.marketplace.view", group: "Marketplace" },
-      { label: "Pharmacy partners", href: "/healthcare/pharmacies", permission: "healthcare.pharmacies.view", group: "Marketplace" },
-      { label: "Marketplace products", href: "/healthcare/marketplace-products", permission: "healthcare.marketplace_products.view", group: "Marketplace" },
-      { label: "Provider verification", href: "/healthcare/providers", permission: "healthcare.providers.view", group: "Marketplace" },
-      { label: "Clinic orders", href: "/healthcare/clinic-orders", permission: "healthcare.clinic_orders.view", group: "Marketplace" },
-      { label: "Checkout", href: "/healthcare/checkout", permission: "healthcare.checkout.view", group: "Marketplace" },
-      { label: "Pharmacy fulfillment", href: "/healthcare/fulfillment", permission: "healthcare.fulfillment.view", group: "Marketplace" },
-      { label: "Compliance audit", href: "/healthcare/compliance-audit", permission: "healthcare.compliance_audit.view", group: "Marketplace" },
-      { label: "Marketplace analytics", href: "/healthcare/marketplace-analytics", permission: "healthcare.marketplace_analytics.view", group: "Marketplace" },
       { label: "Insurance policies", href: "/healthcare/insurance", permission: "healthcare.insurance.view", group: "Payer" },
       { label: "Insurance claims", href: "/healthcare/claims", permission: "healthcare.claims.view", group: "Payer" },
       { label: "Infection control", href: "/healthcare/infection", permission: "healthcare.infection.view", group: "Quality" },
@@ -313,12 +304,32 @@ export const rawNavGroups: NavGroup[] = [
       { label: "PHC audit checklist", href: "/healthcare/phc-audit", permission: "healthcare.phc_audit.view", group: "Quality" },
       { label: "CSSD logs", href: "/healthcare/cssd", permission: "healthcare.cssd.view", group: "Quality" },
       { label: "Biomedical equipment", href: "/healthcare/equipment", permission: "healthcare.equipment.view", group: "Quality" },
+      { label: "Consumables", href: "/healthcare/consumables", permission: "healthcare.consumables.view", group: "Quality" },
+      { label: "Enterprise SSO", href: "/healthcare/sso", permission: "healthcare.sso.view", group: "Core" },
       { label: "Telemedicine", href: "/healthcare/telemedicine", permission: "healthcare.telemedicine.view", group: "Front desk" },
       { label: "Branches", href: "/healthcare/branches", permission: "healthcare.branches.view", group: "Core" },
       { label: "Notifications", href: "/healthcare/notifications", permission: "healthcare.notifications.view", group: "Core" },
       { label: "Patient portal", href: "/healthcare/portal", permission: "healthcare.portal.view", group: "Core" },
       { label: "Healthcare analytics", href: "/healthcare/reports", permission: "healthcare.overview.view", group: "Core" },
       { label: "Recycle bin", href: "/healthcare/recycle-bin", permission: "healthcare.recycle_bin.view", group: "Core" }
+    ]
+  },
+  {
+    key: "pharmacy",
+    label: "Alif Pharmacy",
+    href: "/pharmacy",
+    icon: Pill,
+    children: [
+      { label: "Overview", href: "/pharmacy", permission: "pharmacy.overview.view", group: "Core" },
+      { label: "Point of sale", href: "/pharmacy/pos", permission: "pharmacy.pos.view", group: "Sales" },
+      { label: "Sales history", href: "/pharmacy/sales", permission: "pharmacy.sales.view", group: "Sales" },
+      { label: "Products / SKU", href: "/pharmacy/products", permission: "pharmacy.products.view", group: "Catalog" },
+      { label: "Inventory & batches", href: "/pharmacy/inventory", permission: "pharmacy.inventory.view", group: "Catalog" },
+      { label: "Prescriptions", href: "/pharmacy/prescriptions", permission: "pharmacy.prescriptions.view", group: "Clinical" },
+      { label: "Suppliers", href: "/pharmacy/suppliers", permission: "pharmacy.suppliers.view", group: "Supply" },
+      { label: "Purchases", href: "/pharmacy/purchases", permission: "pharmacy.purchases.view", group: "Supply" },
+      { label: "Reports", href: "/pharmacy/reports", permission: "pharmacy.reports.view", group: "Core" },
+      { label: "Recycle bin", href: "/pharmacy/recycle-bin", permission: "pharmacy.recycle_bin.view", group: "Core" }
     ]
   },
   {
@@ -429,6 +440,7 @@ const FLOW_GUIDE_PERM: Partial<Record<ModuleKey, string>> = {
   operations: "operations.overview.view",
   hrm: "hrm.overview.view",
   healthcare: "healthcare.overview.view",
+  pharmacy: "pharmacy.overview.view",
   documents: "documents.required_uploads.view",
   finance: "finance.accounts.view",
   projects: "projects.projects.view",
@@ -515,11 +527,11 @@ export const navItems: NavItem[] = navGroups.map(({ children, ...item }) => item
 export const defaultPermissionMatrix: Record<string, ModuleKey[]> = {
   super_admin: [
     "dashboard", "crm", "sales", "purchases", "inventory", "operations",
-    "hrm", "healthcare", "documents", "finance", "projects", "reports", "settings"
+    "hrm", "healthcare", "pharmacy", "documents", "finance", "projects", "reports", "settings"
   ],
   company_admin: [
     "dashboard", "crm", "sales", "purchases", "inventory", "operations",
-    "hrm", "healthcare", "documents", "finance", "projects", "reports", "settings"
+    "hrm", "healthcare", "pharmacy", "documents", "finance", "projects", "reports", "settings"
   ],
   hr_manager: ["dashboard", "hrm", "documents", "reports"],
   sales_manager: ["dashboard", "crm", "sales", "reports"],

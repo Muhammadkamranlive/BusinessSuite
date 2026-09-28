@@ -140,10 +140,11 @@ function defaultPackages(): SubscriptionPackage[] {
       features: [
         "Up to 200 users",
         "Everything in Gold",
-        "Modules: Projects, Operations, Healthcare HMS",
+        "Modules: Projects, Operations, Healthcare HMS, Alif Pharmacy",
         "Projects: tasks, milestones, budgets",
         "Operations: BOM, work orders, maintenance",
         "Healthcare: patients, OPD, pharmacy, lab",
+        "Alif Pharmacy: retail POS, batches, prescriptions",
         "Custom reports & BI snapshots",
         "SSO-ready architecture",
         "Dedicated onboarding",
@@ -162,6 +163,7 @@ function defaultPackages(): SubscriptionPackage[] {
         "projects",
         "operations",
         "healthcare",
+        "pharmacy",
         "reports",
         "settings"
       ],
@@ -184,7 +186,7 @@ function defaultPackages(): SubscriptionPackage[] {
         "Isolated infrastructure deployed where you want it: our dedicated cloud, a VPS of your choice, your own hosting company under a commercial license, or a fully offline intranet. Separate database, your domain and white-label name, and instance Super Admin on that stack.",
       features: [
         "Unlimited users",
-        "All modules: Dashboard, CRM, Sales, Purchases, Inventory, Operations, HRM, Healthcare, Documents, Finance, Projects, Reports, Administration",
+        "All modules: Dashboard, CRM, Sales, Purchases, Inventory, Operations, HRM, Healthcare, Alif Pharmacy, Documents, Finance, Projects, Reports, Administration",
         "Separate database (not shared multi-tenant)",
         "Deploy on dedicated cloud, your VPS, or your hosting company",
         "Licensed self-hosting with guided install & upgrades",
@@ -205,6 +207,7 @@ function defaultPackages(): SubscriptionPackage[] {
         "projects",
         "operations",
         "healthcare",
+        "pharmacy",
         "reports",
         "settings"
       ],

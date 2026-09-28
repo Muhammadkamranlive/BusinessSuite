@@ -16,6 +16,8 @@
     "db:push": "node scripts/db-push.mjs",
     "db:migrate": "node scripts/db-push.mjs",
     "db:verify-marketplace": "node scripts/verify-marketplace-tables.mjs",
+    "db:audit:hms": "node scripts/hms-compliance-audit.mjs",
+    "test:hms-rbac": "node scripts/hms-rbac-matrix-test.mjs",
     "db:repair": "supabase migration repair --status applied",
     "db:seed:healthcare": "node scripts/seed-healthcare.mjs",
     "db:seed:verify": "node scripts/verify-demo-seed.mjs",

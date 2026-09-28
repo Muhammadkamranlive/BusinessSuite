@@ -39,7 +39,7 @@ export default function BlogDetailPage() {
           ← Insights
         </Link>
         {post.coverImage ? (
-          <img src={post.coverImage} alt="" className="mt-6 h-64 w-full rounded-[1.5rem] object-cover shadow-[0_24px_50px_rgba(10,37,64,0.12)]" />
+          <img src={post.coverImage} alt={post.title} className="mt-6 h-64 w-full rounded-[1.5rem] object-cover shadow-[0_24px_50px_rgba(10,37,64,0.12)]" />
         ) : (
           <p className="mt-6 text-4xl">{post.coverEmoji}</p>
         )}

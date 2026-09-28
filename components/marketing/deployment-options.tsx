@@ -3,12 +3,13 @@
 import { ArrowRight, Building2, Check, Cloud, Network, ServerCog } from "lucide-react";
 import { MktCta } from "@/components/marketing/mkt-button";
 import { Reveal } from "@/components/marketing/reveal";
+import { TOTAL_PAYABLE_APP_COUNT } from "@/lib/billing/module-catalog";
 
 const options = [
   {
     icon: Cloud,
     name: "Shared cloud (SaaS)",
-    tag: "Included with every package",
+    tag: "Silver · Gold · Platinum",
     blurb:
       "Your company runs as an isolated tenant on our managed cloud. Sign up, pick a package, invite the team — live in minutes.",
     points: [
@@ -17,7 +18,7 @@ const options = [
       "Company Admin controls users, roles, and billing",
       "Included with Silver, Gold, and Platinum"
     ],
-    cta: { href: "/signup", label: "Start free trial" },
+    cta: { href: "/signup", label: "Create your company" },
     featured: false
   },
   {
@@ -58,7 +59,7 @@ const options = [
       "Fully offline deployment inside your building or private network — for plants, hospitals, and organizations that cannot depend on the internet.",
     points: [
       "Runs on your LAN with no outside connectivity required",
-      "Same 15 apps — pay per app with role-based access inside each licensed app",
+      `Same ${TOTAL_PAYABLE_APP_COUNT} apps — pay per app with role-based access inside each licensed app`,
       "Ideal for factories, hospitals, and secure sites",
       "Offered alongside every package tier"
     ],

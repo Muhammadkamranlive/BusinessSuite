@@ -171,11 +171,16 @@ export function authenticateAccount(email: string, _password: string) {
 }
 
 export async function loginAccountViaServer(email: string, password: string) {
-  const res = await fetch("/api/auth/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password })
-  });
+  let res: Response;
+  try {
+    res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password })
+    });
+  } catch {
+    throw new Error("Cannot reach the server. Check that the app is running and try again.");
+  }
   const data = (await res.json()) as {
     ok?: boolean;
     error?: string;
@@ -196,22 +201,27 @@ export async function loginAccountViaServer(email: string, password: string) {
 }
 
 export async function hydrateAuthFromSession() {
-  const res = await fetch("/api/auth/session");
-  if (!res.ok) return null;
-  const data = (await res.json()) as {
-    authenticated?: boolean;
-    profile?: {
-      id: string;
-      email: string;
-      name: string;
-      role: RoleKey;
-      title: string;
-      tenantId: string;
-      status: PublicAccount["status"];
+  try {
+    const res = await fetch("/api/auth/session");
+    if (!res.ok) return null;
+    const data = (await res.json()) as {
+      authenticated?: boolean;
+      profile?: {
+        id: string;
+        email: string;
+        name: string;
+        role: RoleKey;
+        title: string;
+        tenantId: string;
+        status: PublicAccount["status"];
+      };
     };
-  };
-  if (!data.authenticated || !data.profile) return null;
-  return cacheAccountFromProfile(data.profile);
+    if (!data.authenticated || !data.profile) return null;
+    return cacheAccountFromProfile(data.profile);
+  } catch {
+    // Offline / aborted / proxy — keep local session cache if any
+    return null;
+  }
 }
 
 export function loginAccount(email: string, password: string) {

@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { readMotionPreference } from "@/components/marketing/cinematic/motion-hooks";
 
-/** Counts from 0 to `value` when scrolled into view. Respects reduced motion. */
+/** Counts from 0 to `value` when scrolled into view. Honors the explicit motion opt-out. */
 export function StatCounter({
   value,
   suffix = "",
@@ -20,7 +21,7 @@ export function StatCounter({
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (readMotionPreference() === "reduce") {
       setDisplay(value);
       return;
     }

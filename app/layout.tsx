@@ -17,17 +17,41 @@ const jakarta = Plus_Jakarta_Sans({
   variable: "--font-mkt"
 });
 
+function siteUrl(): URL {
+  const raw = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  try {
+    return new URL(raw && raw.length > 0 ? raw : "http://localhost:3000");
+  } catch {
+    return new URL("http://localhost:3000");
+  }
+}
+
 export async function generateMetadata(): Promise<Metadata> {
   const brand = await readProductBrandFile();
   const full = `${brand.productName} ${brand.productTagline}`.trim();
+  const description =
+    "Cloud ERP for growing companies — CRM, sales, procurement, inventory, operations, HRM, hospital HMS, pharmacy, finance, and BI in one subscribed workspace.";
   return {
+    metadataBase: siteUrl(),
     title: {
       default: full,
       template: `%s | ${brand.productName}`
     },
-    description:
-      "Cloud ERP for growing companies — CRM, sales, procurement, inventory, operations, HRM, hospital HMS, finance, and BI in one subscribed workspace.",
+    description,
     applicationName: full,
+    openGraph: {
+      type: "website",
+      siteName: brand.productName,
+      title: full,
+      description,
+      images: [{ url: "/marketing/cinematic/erp-commercial-hero.png", width: 1600, height: 1000, alt: full }]
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: full,
+      description,
+      images: ["/marketing/cinematic/erp-commercial-hero.png"]
+    },
     icons: {
       icon: "/icon.svg"
     },

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { guardHealthcarePhiRoute } from "@/lib/auth/server/api-guard";
 import { EmailTemplateKey } from "@/lib/email/types";
+import { invalidRequestResponse, requireTenantId } from "@/lib/healthcare/hms-request-validate";
+import { safeLog } from "@/lib/healthcare/phi-redact";
 import { emitUserAlert } from "@/lib/notifications/automate";
 import { getSupabaseAdminClient, hasSecretKey } from "@/lib/supabase/server";
 import { toDbTenantId, toUiTenantId } from "@/lib/tenants/ids";
@@ -27,6 +29,12 @@ export async function POST(request: Request) {
     body = {};
   }
 
+  const tenantRaw = body.tenantId ?? undefined;
+  if (tenantRaw) {
+    const tenantCheck = requireTenantId(tenantRaw);
+    if (!tenantCheck.ok) return invalidRequestResponse(tenantCheck.error);
+  }
+
   const guard = await guardHealthcarePhiRoute(request, body.tenantId);
   if (!guard.ok) return guard.response;
 
@@ -50,6 +58,7 @@ export async function POST(request: Request) {
     .limit(limit);
 
   if (error) {
+    safeLog("reminders queue fetch failed", { error: error.message });
     return NextResponse.json({ ok: false, reason: error.message }, { status: 502 });
   }
 

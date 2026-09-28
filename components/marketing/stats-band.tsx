@@ -2,9 +2,15 @@
 
 import { Reveal } from "@/components/marketing/reveal";
 import { StatCounter } from "@/components/marketing/stat-counter";
+import { BUSINESS_APP_COUNT, PLATFORM_APP_COUNT, TOTAL_PAYABLE_APP_COUNT } from "@/lib/billing/module-catalog";
 
 const stats = [
-  { value: 15, suffix: "", label: "Pay-per apps", note: "13 business + 2 platform" },
+  {
+    value: TOTAL_PAYABLE_APP_COUNT,
+    suffix: "",
+    label: "Pay-per apps",
+    note: `${BUSINESS_APP_COUNT} business + ${PLATFORM_APP_COUNT} platform`
+  },
   { value: 180, suffix: "+", label: "Screens & registers", note: "All searchable via ⌘K" },
   { value: 57, suffix: "", label: "Master catalogs", note: "Banks to lab tests" },
   { value: 4, suffix: "", label: "Deployment models", note: "Cloud · VPS · self-hosted · intranet" }

@@ -39,6 +39,8 @@ export type SystemSettings = {
   companyName: string;
   legalName: string;
   supportEmail: string;
+  /** ISO country for phone / national ID formats (PK, AE, US, …). Empty = infer. */
+  country: string;
   timezone: string;
   currency: string;
   dateFormat: string;
@@ -91,6 +93,7 @@ const defaultSettings: SystemSettings = {
   companyName: "Alpha Trading LLC",
   legalName: "Alpha Trading LLC",
   supportEmail: "support@businesssuite.app",
+  country: "",
   timezone: "Asia/Dubai",
   currency: "USD",
   dateFormat: "YYYY-MM-DD",

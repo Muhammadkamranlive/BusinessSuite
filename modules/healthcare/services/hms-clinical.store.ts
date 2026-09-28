@@ -1,6 +1,7 @@
 import type { UUID } from "@/modules/core/types";
 import { generateDocumentNumber } from "@/modules/core/services/numbering.service";
 import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } from "@/modules/core/services/entity-crud";
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import type {
   HmsAdmission,
   HmsAmbulanceDispatch,
@@ -29,11 +30,18 @@ import type {
   HmsVital,
   HmsWard,
   HmsBranchShareConsent,
+  HmsConsumable,
+  HmsConsumableMovement,
   HmsDoctorLeave,
   HmsEmrAttachment,
+  HmsHl7Inbox,
   HmsPharmacyPoItem,
   HmsPharmacyPurchaseOrder,
+  HmsQualityIndicator,
+  HmsRegulatoryReport,
   HmsReminderQueue,
+  HmsSsoConfig,
+  HmsStaffAttendance,
   HmsWaitlistEntry
 } from "@/modules/healthcare/model/hms-clinical";
 import type { HmsClinicalRemoteSnapshot } from "@/modules/healthcare/services/hms-clinical.supabase-sync";
@@ -47,7 +55,9 @@ import {
   appendPhiAudit,
   checkDrugAllergy,
   getPatientById,
+  listEncounters,
   listInvoices,
+  listPatients,
   updatePatient
 } from "@/modules/healthcare/services/hms.store";
 
@@ -62,6 +72,9 @@ function today() {
 function id() {
   return crypto.randomUUID();
 }
+
+const STORAGE_KEY = "businesssuite:hms-clinical:v1";
+let clinicalHydrated = false;
 
 let branches: HmsBranch[] = [];
 let wards: HmsWard[] = [];
@@ -94,6 +107,13 @@ let pharmacyPos: HmsPharmacyPurchaseOrder[] = [];
 let pharmacyPoItems: HmsPharmacyPoItem[] = [];
 let branchShareConsents: HmsBranchShareConsent[] = [];
 let reminderQueue: HmsReminderQueue[] = [];
+let consumables: HmsConsumable[] = [];
+let consumableMovements: HmsConsumableMovement[] = [];
+let qualityIndicators: HmsQualityIndicator[] = [];
+let regulatoryReports: HmsRegulatoryReport[] = [];
+let hl7Inbox: HmsHl7Inbox[] = [];
+let ssoConfigs: HmsSsoConfig[] = [];
+let staffAttendance: HmsStaffAttendance[] = [];
 let syncTimer: ReturnType<typeof setTimeout> | null = null;
 let pendingTenantId: string | undefined;
 
@@ -107,7 +127,54 @@ function syncEnabled() {
   return process.env.NEXT_PUBLIC_HMS_USE_SUPABASE !== "false";
 }
 
+function ensureClinicalHydrated() {
+  if (clinicalHydrated || typeof window === "undefined") return;
+  clinicalHydrated = true;
+  const snap = loadPersisted<HmsClinicalRemoteSnapshot>(STORAGE_KEY);
+  if (snap?.version !== 1) return;
+  branches = snap.branches ?? [];
+  wards = snap.wards ?? [];
+  beds = snap.beds ?? [];
+  admissions = snap.admissions ?? [];
+  transfers = snap.transfers ?? [];
+  vitals = snap.vitals ?? [];
+  mar = snap.mar ?? [];
+  prescriptions = snap.prescriptions ?? [];
+  labOrders = snap.labOrders ?? [];
+  labResults = snap.labResults ?? [];
+  imagingOrders = snap.imagingOrders ?? [];
+  pharmacyStock = snap.pharmacyStock ?? [];
+  dispenses = snap.dispenses ?? [];
+  insuranceClaims = snap.insuranceClaims ?? [];
+  telemedicineSessions = snap.telemedicineSessions ?? [];
+  ambulanceDispatches = snap.ambulanceDispatches ?? [];
+  emergencyIntakes = snap.emergencyIntakes ?? [];
+  staff = snap.staff ?? [];
+  dutyRosters = snap.dutyRosters ?? [];
+  equipmentAssets = snap.equipmentAssets ?? [];
+  notificationPrefs = snap.notificationPrefs ?? [];
+  notifications = snap.notifications ?? [];
+  messageThreads = snap.messageThreads ?? [];
+  messages = snap.messages ?? [];
+  waitlistEntries = snap.waitlistEntries ?? [];
+  doctorLeaves = snap.doctorLeaves ?? [];
+  emrAttachments = snap.emrAttachments ?? [];
+  pharmacyPos = snap.pharmacyPos ?? [];
+  pharmacyPoItems = snap.pharmacyPoItems ?? [];
+  branchShareConsents = snap.branchShareConsents ?? [];
+  reminderQueue = snap.reminderQueue ?? [];
+  consumables = snap.consumables ?? [];
+  consumableMovements = snap.consumableMovements ?? [];
+  qualityIndicators = snap.qualityIndicators ?? [];
+  regulatoryReports = snap.regulatoryReports ?? [];
+  hl7Inbox = snap.hl7Inbox ?? [];
+  ssoConfigs = snap.ssoConfigs ?? [];
+  staffAttendance = snap.staffAttendance ?? [];
+}
+
 function persist(tenantId?: string) {
+  ensureClinicalHydrated();
+  savePersisted(STORAGE_KEY, buildHmsClinicalSnapshot());
   emit();
   queueHmsClinicalRemoteSync(tenantId);
 }
@@ -117,6 +184,7 @@ function phiRef(patientId?: string | null, recordId?: string) {
 }
 
 export function buildHmsClinicalSnapshot(tenantId?: string): HmsClinicalRemoteSnapshot {
+  ensureClinicalHydrated();
   const f = <T extends { tenant_id: string }>(rows: T[]) =>
     tenantId ? rows.filter((r) => r.tenant_id === tenantId) : rows;
   return {
@@ -152,12 +220,21 @@ export function buildHmsClinicalSnapshot(tenantId?: string): HmsClinicalRemoteSn
     pharmacyPos: f(pharmacyPos),
     pharmacyPoItems: f(pharmacyPoItems),
     branchShareConsents: f(branchShareConsents),
-    reminderQueue: f(reminderQueue)
+    reminderQueue: f(reminderQueue),
+    consumables: f(consumables),
+    consumableMovements: f(consumableMovements),
+    qualityIndicators: f(qualityIndicators),
+    regulatoryReports: f(regulatoryReports),
+    hl7Inbox: f(hl7Inbox),
+    ssoConfigs: f(ssoConfigs),
+    staffAttendance: f(staffAttendance)
   };
 }
 
 export function queueHmsClinicalRemoteSync(tenantId?: string, immediate = false) {
   if (typeof window === "undefined" || !syncEnabled()) return;
+  ensureClinicalHydrated();
+  savePersisted(STORAGE_KEY, buildHmsClinicalSnapshot());
   if (tenantId) pendingTenantId = tenantId;
   const push = () => {
     const tid = pendingTenantId;
@@ -179,6 +256,7 @@ export function queueHmsClinicalRemoteSync(tenantId?: string, immediate = false)
 
 export async function pullHmsClinicalFromSupabase(tenantId: string) {
   if (typeof window === "undefined" || !syncEnabled()) return false;
+  ensureClinicalHydrated();
   try {
     const res = await fetch(`/api/healthcare/hms-clinical-sync?tenantId=${encodeURIComponent(tenantId)}`);
     const json = (await res.json()) as { ok?: boolean; skipped?: boolean; snapshot?: HmsClinicalRemoteSnapshot };
@@ -219,6 +297,14 @@ export async function pullHmsClinicalFromSupabase(tenantId: string) {
     pharmacyPoItems = keep(pharmacyPoItems, s.pharmacyPoItems ?? []);
     branchShareConsents = keep(branchShareConsents, s.branchShareConsents ?? []);
     reminderQueue = keep(reminderQueue, s.reminderQueue ?? []);
+    consumables = keep(consumables, s.consumables ?? []);
+    consumableMovements = keep(consumableMovements, s.consumableMovements ?? []);
+    qualityIndicators = keep(qualityIndicators, s.qualityIndicators ?? []);
+    regulatoryReports = keep(regulatoryReports, s.regulatoryReports ?? []);
+    hl7Inbox = keep(hl7Inbox, s.hl7Inbox ?? []);
+    ssoConfigs = keep(ssoConfigs, s.ssoConfigs ?? []);
+    staffAttendance = keep(staffAttendance, s.staffAttendance ?? []);
+    savePersisted(STORAGE_KEY, buildHmsClinicalSnapshot());
     emit();
     return true;
   } catch {
@@ -235,6 +321,7 @@ export function subscribeHmsClinical(listener: () => void) {
 // ── Branches ────────────────────────────────────────────────────────────────
 
 export function listBranches(tenantId: UUID) {
+  ensureClinicalHydrated();
   return branches.filter((b) => b.tenant_id === tenantId && b.is_active !== false).sort((a, b) => a.code.localeCompare(b.code));
 }
 
@@ -1926,6 +2013,395 @@ export function linkGuardian(tenantId: UUID, childId: UUID, guardianId: UUID, ac
   });
   queueHmsClinicalRemoteSync(tenantId, true);
   return updated;
+}
+
+// ── Consumables ───────────────────────────────────────────────────────────────
+
+export function listConsumables(tenantId: UUID) {
+  return consumables
+    .filter((c) => c.tenant_id === tenantId && c.is_active !== false)
+    .sort((a, b) => a.name.localeCompare(b.name));
+}
+
+export function listLowConsumables(tenantId: UUID) {
+  return listConsumables(tenantId).filter((c) => c.quantity <= c.reorder_level);
+}
+
+export function listConsumableMovements(tenantId: UUID, consumableId?: UUID) {
+  return consumableMovements
+    .filter((m) => m.tenant_id === tenantId && (!consumableId || m.consumable_id === consumableId))
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+export function createConsumable(
+  tenantId: UUID,
+  input: Omit<HmsConsumable, "id" | "tenant_id" | "created_at" | "updated_at" | "is_active">
+) {
+  const row: HmsConsumable = {
+    ...input,
+    id: id(),
+    tenant_id: tenantId,
+    created_at: now(),
+    updated_at: now(),
+    is_active: true
+  };
+  consumables.unshift(row);
+  persist(tenantId);
+  return row;
+}
+
+const consumableRef = {
+  get: () => consumables,
+  set: (rows: HmsConsumable[]) => {
+    consumables = rows;
+  },
+  persist: () => persist(),
+  module: "healthcare",
+  entityName: "hms_consumable",
+  labelOf: (r: HmsConsumable) => `${r.sku} · ${r.name}`
+};
+bindTrashRestore(consumableRef);
+
+export function updateConsumable(entityId: UUID, patch: Partial<HmsConsumable>) {
+  return updateEntityInCollection(consumableRef, entityId, patch);
+}
+
+export function adjustConsumableQty(
+  tenantId: UUID,
+  consumableId: UUID,
+  qtyDelta: number,
+  reason: string,
+  actor?: string
+) {
+  const item = consumables.find((c) => c.id === consumableId && c.tenant_id === tenantId);
+  if (!item) throw new Error("Consumable not found.");
+  const movement: HmsConsumableMovement = {
+    id: id(),
+    tenant_id: tenantId,
+    consumable_id: consumableId,
+    qty_delta: qtyDelta,
+    reason,
+    created_by: actor ?? null,
+    created_at: now()
+  };
+  consumableMovements.unshift(movement);
+  item.quantity = Math.max(0, item.quantity + qtyDelta);
+  item.updated_at = now();
+  persist(tenantId);
+  return { item, movement };
+}
+
+// ── Quality & regulatory reports ──────────────────────────────────────────────
+
+export function listQualityIndicators(tenantId: UUID) {
+  return qualityIndicators
+    .filter((q) => q.tenant_id === tenantId && q.is_active !== false)
+    .sort((a, b) => b.period.localeCompare(a.period) || a.code.localeCompare(b.code));
+}
+
+export function createQualityIndicator(
+  tenantId: UUID,
+  input: Omit<HmsQualityIndicator, "id" | "tenant_id" | "created_at" | "updated_at" | "is_active">
+) {
+  const row: HmsQualityIndicator = {
+    ...input,
+    id: id(),
+    tenant_id: tenantId,
+    created_at: now(),
+    updated_at: now(),
+    is_active: true
+  };
+  qualityIndicators.unshift(row);
+  persist(tenantId);
+  return row;
+}
+
+const qualityRef = {
+  get: () => qualityIndicators,
+  set: (rows: HmsQualityIndicator[]) => {
+    qualityIndicators = rows;
+  },
+  persist: () => persist(),
+  module: "healthcare",
+  entityName: "hms_quality_indicator",
+  labelOf: (r: HmsQualityIndicator) => `${r.code} · ${r.period}`
+};
+bindTrashRestore(qualityRef);
+
+export function updateQualityIndicator(entityId: UUID, patch: Partial<HmsQualityIndicator>) {
+  return updateEntityInCollection(qualityRef, entityId, patch);
+}
+
+export function listRegulatoryReports(tenantId: UUID) {
+  return regulatoryReports
+    .filter((r) => r.tenant_id === tenantId)
+    .sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+function buildRegulatoryPayload(
+  tenantId: UUID,
+  templateKey: string,
+  periodStart: string,
+  periodEnd: string
+): Record<string, unknown> {
+  const analytics = getClinicalAnalytics(tenantId);
+  const activePatients = listPatients(tenantId).filter((p) => p.is_active !== false && !p.anonymized).length;
+  const encountersInPeriod = listEncounters(tenantId).filter(
+    (e) => e.is_active !== false && e.visit_date >= periodStart && e.visit_date <= periodEnd
+  ).length;
+  if (templateKey === "public_health_summary") {
+    return {
+      template: "public_health_summary",
+      period_start: periodStart,
+      period_end: periodEnd,
+      active_patient_count: activePatients,
+      encounter_count: encountersInPeriod,
+      pending_lab_orders: analytics.pending_labs,
+      note: "Aggregate counts only — no patient identifiers."
+    };
+  }
+  if (templateKey === "occupancy_regulatory") {
+    return {
+      template: "occupancy_regulatory",
+      period_start: periodStart,
+      period_end: periodEnd,
+      total_beds: analytics.total_beds,
+      occupied_beds: analytics.occupied_beds,
+      occupancy_rate_pct: analytics.occupancy_rate,
+      note: "Bed occupancy aggregates for regulatory filing stub."
+    };
+  }
+  return { template: templateKey, period_start: periodStart, period_end: periodEnd };
+}
+
+export function generateRegulatoryReport(
+  tenantId: UUID,
+  input: {
+    template_key: string;
+    region?: string;
+    title: string;
+    period_start: string;
+    period_end: string;
+  }
+) {
+  const payload = buildRegulatoryPayload(tenantId, input.template_key, input.period_start, input.period_end);
+  const row: HmsRegulatoryReport = {
+    id: id(),
+    tenant_id: tenantId,
+    template_key: input.template_key,
+    region: input.region ?? "default",
+    title: input.title,
+    period_start: input.period_start,
+    period_end: input.period_end,
+    payload,
+    status: "generated",
+    generated_at: now(),
+    created_at: now(),
+    updated_at: now()
+  };
+  regulatoryReports.unshift(row);
+  persist(tenantId);
+  return row;
+}
+
+// ── HL7 inbox stub ────────────────────────────────────────────────────────────
+
+export function parseHl7Stub(rawMessage: string): Record<string, unknown> {
+  const segments = rawMessage.split(/\r?\n/).filter(Boolean);
+  const msh = segments.find((s) => s.startsWith("MSH|"));
+  const obr = segments.find((s) => s.startsWith("OBR|"));
+  const obx = segments.filter((s) => s.startsWith("OBX|"));
+  return {
+    message_type: msh?.split("|")[8] ?? "ORU^R01",
+    order_ref: obr?.split("|")[2] ?? null,
+    results: obx.map((line) => {
+      const p = line.split("|");
+      return { test_name: p[3] ?? "Unknown", value: p[5] ?? "", unit: p[6] ?? "" };
+    })
+  };
+}
+
+export function listHl7Inbox(tenantId: UUID) {
+  return hl7Inbox.filter((m) => m.tenant_id === tenantId).sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+export function createHl7InboxMessage(
+  tenantId: UUID,
+  input: { raw_message: string; lab_order_id?: UUID | null; actor?: string }
+) {
+  const parsed_stub = parseHl7Stub(input.raw_message);
+  const row: HmsHl7Inbox = {
+    id: id(),
+    tenant_id: tenantId,
+    raw_message: input.raw_message,
+    parsed_stub,
+    status: "received",
+    lab_order_id: input.lab_order_id ?? null,
+    created_at: now()
+  };
+  hl7Inbox.unshift(row);
+  persist(tenantId);
+  return row;
+}
+
+export function processHl7Stub(tenantId: UUID, inboxId: UUID, actor?: string) {
+  const msg = hl7Inbox.find((m) => m.id === inboxId && m.tenant_id === tenantId);
+  if (!msg) throw new Error("HL7 inbox message not found.");
+  if (msg.status === "processed") return msg;
+
+  const orderRef = String(msg.parsed_stub.order_ref ?? "");
+  let order =
+    (msg.lab_order_id ? labOrders.find((o) => o.id === msg.lab_order_id && o.tenant_id === tenantId) : undefined) ??
+    labOrders.find((o) => o.tenant_id === tenantId && (o.order_no === orderRef || o.sample_barcode === orderRef));
+
+  if (!order) {
+    msg.status = "failed";
+    persist(tenantId);
+    throw new Error("No matching lab order for HL7 stub.");
+  }
+
+  msg.lab_order_id = order.id;
+  const results = (msg.parsed_stub.results as Array<{ test_name?: string; value?: string; unit?: string }>) ?? [];
+  for (const r of results) {
+    if (!r.test_name?.trim()) continue;
+    addLabResult(tenantId, {
+      lab_order_id: order.id,
+      test_name: r.test_name.trim(),
+      result_value: r.value ?? null,
+      unit: r.unit ?? null,
+      flag: "normal",
+      actor: actor ?? "hl7_stub"
+    });
+  }
+
+  order.hl7_stub = msg.parsed_stub;
+  order.updated_at = now();
+  msg.status = "processed";
+  appendPhiAudit(tenantId, {
+    actor_email: actor ?? null,
+    action: "hl7_stub_processed",
+    table_name: "hms_hl7_inbox",
+    ...phiRef(order.patient_id, msg.id),
+    after_diff: { inbox_id: msg.id, lab_order_id: order.id, result_count: results.length }
+  });
+  persist(tenantId);
+  return msg;
+}
+
+// ── SSO config stub ───────────────────────────────────────────────────────────
+
+export function listSsoConfigs(tenantId: UUID) {
+  return ssoConfigs.filter((c) => c.tenant_id === tenantId && c.is_active !== false);
+}
+
+export function upsertSsoConfig(
+  tenantId: UUID,
+  input: Omit<HmsSsoConfig, "id" | "tenant_id" | "created_at" | "updated_at" | "is_active" | "client_secret_ref"> & {
+    client_secret_ref?: string;
+  }
+) {
+  const existing = ssoConfigs.find((c) => c.tenant_id === tenantId && c.provider === input.provider);
+  if (existing) {
+    Object.assign(existing, {
+      ...input,
+      client_secret_ref: input.client_secret_ref ?? existing.client_secret_ref,
+      updated_at: now()
+    });
+    persist(tenantId);
+    return existing;
+  }
+  const row: HmsSsoConfig = {
+    ...input,
+    client_secret_ref: input.client_secret_ref ?? "vault://stub-not-configured",
+    id: id(),
+    tenant_id: tenantId,
+    created_at: now(),
+    updated_at: now(),
+    is_active: true
+  };
+  ssoConfigs.unshift(row);
+  persist(tenantId);
+  return row;
+}
+
+// ── Staff attendance ──────────────────────────────────────────────────────────
+
+export function listStaffAttendance(tenantId: UUID, workDate?: string) {
+  return staffAttendance
+    .filter((a) => a.tenant_id === tenantId && a.is_active !== false && (!workDate || a.work_date === workDate))
+    .sort((a, b) => b.work_date.localeCompare(a.work_date));
+}
+
+export function checkInStaff(tenantId: UUID, staffId: UUID, workDate?: string) {
+  const date = workDate ?? today();
+  let row = staffAttendance.find(
+    (a) => a.tenant_id === tenantId && a.staff_id === staffId && a.work_date === date && a.is_active !== false
+  );
+  if (row) {
+    row.check_in = row.check_in ?? now();
+    row.status = "present";
+    row.updated_at = now();
+  } else {
+    row = {
+      id: id(),
+      tenant_id: tenantId,
+      staff_id: staffId,
+      work_date: date,
+      check_in: now(),
+      check_out: null,
+      status: "present",
+      created_at: now(),
+      updated_at: now(),
+      is_active: true
+    };
+    staffAttendance.unshift(row);
+  }
+  persist(tenantId);
+  return row;
+}
+
+export function checkOutStaff(tenantId: UUID, staffId: UUID, workDate?: string) {
+  const date = workDate ?? today();
+  const row = staffAttendance.find(
+    (a) => a.tenant_id === tenantId && a.staff_id === staffId && a.work_date === date && a.is_active !== false
+  );
+  if (!row) throw new Error("No attendance record for check-out.");
+  row.check_out = now();
+  row.updated_at = now();
+  persist(tenantId);
+  return row;
+}
+
+export function setStaffAttendanceStatus(
+  tenantId: UUID,
+  staffId: UUID,
+  status: HmsStaffAttendance["status"],
+  workDate?: string
+) {
+  const date = workDate ?? today();
+  let row = staffAttendance.find(
+    (a) => a.tenant_id === tenantId && a.staff_id === staffId && a.work_date === date && a.is_active !== false
+  );
+  if (!row) {
+    row = {
+      id: id(),
+      tenant_id: tenantId,
+      staff_id: staffId,
+      work_date: date,
+      check_in: null,
+      check_out: null,
+      status,
+      created_at: now(),
+      updated_at: now(),
+      is_active: true
+    };
+    staffAttendance.unshift(row);
+  } else {
+    row.status = status;
+    row.updated_at = now();
+  }
+  persist(tenantId);
+  return row;
 }
 
 // ── Analytics ─────────────────────────────────────────────────────────────────

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 260" width="220" height="260" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="shield-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="var(--bs-illus-teal, #0d9488)"/>
+      <stop offset="100%" stop-color="color-mix(in srgb, var(--bs-illus-teal, #0d9488) 70%, #05463f)"/>
+    </linearGradient>
+    <radialGradient id="shield-pulse-glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="var(--bs-illus-teal, #0d9488)" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="var(--bs-illus-teal, #0d9488)" stop-opacity="0"/>
+    </radialGradient>
+    <style>
+      .shield-ring { fill: none; stroke: var(--bs-illus-teal, #0d9488); stroke-width: 2; opacity: 0; transform-origin: 110px 118px; animation: shield-ring-pulse 3s ease-out infinite; }
+      .shield-ring.r2 { animation-delay: 1s; }
+      .shield-ring.r3 { animation-delay: 2s; }
+      .shield-body { animation: shield-breathe 3.4s ease-in-out infinite; transform-origin: 110px 130px; }
+      .shield-cross { fill: #fff; }
+      .shield-glow { animation: shield-glow-pulse 3.4s ease-in-out infinite; transform-origin: 110px 118px; }
+      @keyframes shield-ring-pulse {
+        0% { opacity: 0; transform: scale(0.7); }
+        30% { opacity: 0.55; }
+        100% { opacity: 0; transform: scale(1.35); }
+      }
+      @keyframes shield-breathe {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.035); }
+      }
+      @keyframes shield-glow-pulse {
+        0%, 100% { opacity: 0.5; }
+        50% { opacity: 0.95; }
+      }
+      
+    </style>
+  </defs>
+
+  <circle class="shield-ring r1" cx="110" cy="118" r="70"/>
+  <circle class="shield-ring r2" cx="110" cy="118" r="70"/>
+  <circle class="shield-ring r3" cx="110" cy="118" r="70"/>
+
+  <ellipse class="shield-glow" cx="110" cy="118" rx="95" ry="95" fill="url(#shield-pulse-glow)"/>
+
+  <g class="shield-body">
+    <path d="M110 20 L188 52 L188 128 C188 178 154 214 110 232 C66 214 32 178 32 128 L32 52 Z"
+      fill="url(#shield-fill)" stroke="#fff" stroke-opacity="0.25" stroke-width="2"/>
+    <path class="shield-cross" d="M100 84 h20 v34 h34 v20 h-34 v34 h-20 v-34 h-34 v-20 h34 z"/>
+  </g>
+</svg>

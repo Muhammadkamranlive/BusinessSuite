@@ -51,13 +51,16 @@ export function Testimonials() {
     <section className="border-t border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)] py-16 md:py-24">
       <Reveal className="mx-auto grid max-w-6xl items-center gap-8 px-4 md:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
         <div>
-          <p className="mkt-eyebrow">What operators say</p>
+          <p className="mkt-eyebrow">Operator stories</p>
           <h2 className="mkt-display mt-3 text-3xl text-[color:var(--bs-ink)] sm:text-4xl">
             Run by people who run companies
           </h2>
           <p className="mkt-muted mt-4 max-w-lg text-base leading-7">
             Distributors, manufacturers, clinics, and trading houses run their day on BusinessSuite —
             from the warehouse floor to the boardroom. Here is what their operators tell us.
+          </p>
+          <p className="mt-3 text-xs text-slate-400">
+            Quotes from pilot and design-partner deployments; roles and industries shown, names withheld on request.
           </p>
         </div>
         <div className="mkt-testimonial-photo">

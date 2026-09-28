@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 220" width="640" height="220" role="img" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="flow-node-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="var(--bs-illus-teal, #0d9488)"/>
+      <stop offset="100%" stop-color="var(--bs-illus-coral, #e4573d)"/>
+    </linearGradient>
+    <style>
+      .flow-path { fill: none; stroke: var(--bs-illus-teal, #0d9488); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 10 10; animation: flow-dash 1.4s linear infinite; }
+      .flow-path.alt { stroke: var(--bs-illus-coral, #e4573d); animation-duration: 1.6s; }
+      .flow-node-box { fill: var(--bs-illus-surface, #fff); stroke: currentColor; stroke-opacity: 0.18; stroke-width: 1.5; rx: 16; }
+      .flow-node-icon { fill: url(#flow-node-fill); }
+      .flow-node-label { fill: currentColor; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 15px; font-weight: 700; text-anchor: middle; }
+      .flow-node-sub { fill: currentColor; opacity: 0.55; font-family: ui-sans-serif, system-ui, sans-serif; font-size: 11px; text-anchor: middle; }
+      .flow-packet { fill: var(--bs-illus-coral, #e4573d); animation: flow-packet 1.4s linear infinite; }
+      .flow-packet.p2 { animation-delay: 0.7s; fill: var(--bs-illus-teal, #0d9488); }
+      @keyframes flow-dash { to { stroke-dashoffset: -40; } }
+      @keyframes flow-packet {
+        0% { offset-distance: 0%; opacity: 0; }
+        8% { opacity: 1; }
+        92% { opacity: 1; }
+        100% { offset-distance: 100%; opacity: 0; }
+      }
+      
+    </style>
+  </defs>
+
+  <path id="path-a" class="flow-path" d="M 140 110 L 300 110"/>
+  <path id="path-b" class="flow-path alt" d="M 340 110 L 500 110"/>
+
+  <circle class="flow-packet p1" r="5" style="offset-path: path('M 140 110 L 300 110');"/>
+  <circle class="flow-packet p2" r="5" style="offset-path: path('M 340 110 L 500 110');"/>
+
+  <g transform="translate(40,60)">
+    <rect class="flow-node-box" width="100" height="100" rx="16"/>
+    <circle class="flow-node-icon" cx="50" cy="38" r="16"/>
+    <text class="flow-node-label" x="50" y="70">CRM</text>
+    <text class="flow-node-sub" x="50" y="86">Leads</text>
+  </g>
+
+  <g transform="translate(270,60)">
+    <rect class="flow-node-box" width="100" height="100" rx="16"/>
+    <circle class="flow-node-icon" cx="50" cy="38" r="16"/>
+    <text class="flow-node-label" x="50" y="70">Sales</text>
+    <text class="flow-node-sub" x="50" y="86">Orders</text>
+  </g>
+
+  <g transform="translate(500,60)">
+    <rect class="flow-node-box" width="100" height="100" rx="16"/>
+    <circle class="flow-node-icon" cx="50" cy="38" r="16"/>
+    <text class="flow-node-label" x="50" y="70">Finance</text>
+    <text class="flow-node-sub" x="50" y="86">Ledger</text>
+  </g>
+</svg>

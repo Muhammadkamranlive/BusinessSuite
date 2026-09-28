@@ -24,6 +24,7 @@ const ALL_MODULES: ModuleKey[] = [
   "operations",
   "hrm",
   "healthcare",
+  "pharmacy",
   "documents",
   "finance",
   "projects",

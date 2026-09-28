@@ -4,6 +4,7 @@ import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } f
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import { catalogSpecs, getCatalogSpec } from "@/modules/catalog/catalog-registry";
 import { queueOpsRemoteSync, registerOpsModule } from "@/modules/ops/services/ops-remote";
+import { isDemoTenant } from "@/lib/demo-tenants";
 
 function now() {
   return new Date().toISOString();
@@ -149,6 +150,42 @@ export function trashCatalog(slug: string, rowId: UUID) {
   return trashEntityInCollection(ref(slug), rowId);
 }
 
+function seedCatalogIfEmpty(tenantId: UUID): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  const opsEmpty = listCatalog("operations.work_orders", tenantId).length === 0;
+  const financeEmpty = listCatalog("finance.banks", tenantId).length === 0;
+  if (!opsEmpty && !financeEmpty) return false;
+  const ts = now();
+  const add = (slug: string, data: Record<string, unknown>, status: string) => {
+    const row: CatalogRow = {
+      ...data,
+      id: id(),
+      tenant_id: tenantId,
+      created_at: ts,
+      updated_at: ts,
+      is_active: true,
+      status
+    };
+    tables[slug] = [row, ...(tables[slug] ?? [])];
+  };
+  if (opsEmpty) {
+    add("operations.bom", { code: "BOM-100", finished_item: "Cotton shirt pack", component: "Cotton bale 480lb", qty: 1, uom: "bale" }, "active");
+    add("operations.work_orders", { wo_no: "WO-2401", item: "Cotton shirt pack", qty: 200, due_date: ts.slice(0, 10), notes: "Rush for Eastern Retail" }, "in_progress");
+    add("operations.maintenance", { order_no: "MO-88", asset_name: "Cutting line 2", kind: "preventive", due_date: ts.slice(0, 10), notes: "Belt inspection" }, "scheduled");
+    add("operations.inspections", { insp_no: "QC-441", item: "Brake pad set", stage: "incoming", result_notes: "Sample lot accepted" }, "passed");
+    add("operations.contracts", { contract_no: "AMC-12", title: "HVAC AMC", party_name: "CoolAir LLC", kind: "amc", start_date: ts.slice(0, 10), value: 18000 }, "active");
+    add("operations.fleet", { reg_no: "DXB-4821", make: "Isuzu", model: "NPR", year: "2022", driver: "Imran" }, "active");
+    add("operations.warranties", { claim_no: "WR-19", product_name: "Compressor unit", party_name: "Urban Fashion Mills", claim_date: ts.slice(0, 10), notes: "Noise on start" }, "open");
+  }
+  if (financeEmpty) {
+    add("finance.banks", { code: "ENBD", name: "Emirates NBD", swift: "EBILAEAD", country: "AE" }, "active");
+    add("finance.bank_accounts", { code: "ENBD-OP", name: "Operating AED", bank_name: "Emirates NBD", account_no: "101-445521", currency: "AED" }, "active");
+    add("finance.fiscal_years", { code: "FY26", name: "FY 2026", start_date: "2026-01-01", end_date: "2026-12-31" }, "open");
+  }
+  persist();
+  return true;
+}
+
 registerOpsModule({
   build: () => {
     ensureHydrated();
@@ -162,5 +199,9 @@ registerOpsModule({
     if (incoming.length === 0 && hasLocal) return;
     inflateFromRemote(incoming);
     savePersisted(STORAGE_KEY, { version: STORAGE_VERSION, tables });
+  },
+  seedIfEmpty: (tenantId) => {
+    ensureHydrated();
+    return seedCatalogIfEmpty(tenantId);
   }
 });

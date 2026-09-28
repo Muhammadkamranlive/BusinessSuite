@@ -121,17 +121,17 @@ const checks = [
   "hms_beds",
   "hms_prescriptions",
   "hms_lab_orders",
-  "hms_pharmacy_stock",
   "hms_imaging_orders",
   "hms_insurance_claims",
   "hms_telemedicine_sessions",
   "hms_emergency_intakes",
   "hms_staff",
   "hms_branches",
-  "hms_pharmacy_purchase_orders",
-  "catalog_records",
-  "pharmacy_partners",
-  "marketplace_products"
+  "hms_consumables",
+  "hms_staff_attendance",
+  "hms_quality_indicators",
+  "hms_sso_configs",
+  "catalog_records"
 ];
 
 let missing = 0;

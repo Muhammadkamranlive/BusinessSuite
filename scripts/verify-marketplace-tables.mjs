@@ -91,6 +91,27 @@ const groups = [
       "hms_doctor_leave",
       "hms_reminder_queue"
     ]
+  },
+  {
+    group: "26 HMS completion",
+    tables: [
+      "hms_consumables",
+      "hms_consumable_movements",
+      "hms_quality_indicators",
+      "hms_regulatory_reports",
+      "hms_hl7_inbox",
+      "hms_sso_configs",
+      "hms_staff_attendance"
+    ]
+  },
+  {
+    group: "27 Alif Pharmacy POS",
+    tables: [
+      "alif_pharmacy_products",
+      "alif_pharmacy_batches",
+      "alif_pharmacy_customers",
+      "alif_pharmacy_sales"
+    ]
   }
 ];
 
@@ -132,4 +153,4 @@ if (missing) {
   process.exit(2);
 }
 
-console.log("\nAll marketplace + HMS migrations (22–25) present on remote.");
+console.log("\nAll marketplace + HMS + Alif Pharmacy migrations (22–27) present on remote.");

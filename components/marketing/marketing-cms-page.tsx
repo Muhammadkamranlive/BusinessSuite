@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ArrowRight, Building2, Clock, Mail, MapPin, Phone, ShieldCheck } from "lucide-react";
+import { ArrowRight, Building2, Clock, Globe2, Mail, ShieldCheck } from "lucide-react";
+import { BUSINESS_APP_COUNT, TOTAL_PAYABLE_APP_COUNT } from "@/lib/billing/module-catalog";
 import { PublicSiteShell } from "@/components/layout/public-site-shell";
 import { CmsArticle, extractHeadings } from "@/components/marketing/cms-article";
 import { ContactForm } from "@/components/marketing/contact-form";
@@ -42,13 +43,39 @@ export function MarketingCmsPage({
 }) {
   const media = useLandingMedia();
   const [page, setPage] = useState<CmsPage | null>(null);
+  const [ready, setReady] = useState(false);
   const spec = publicPageRoutes[route];
 
   useEffect(() => {
     ensureProductionSiteContent();
     const found = getPage(spec.menuSlug, spec.pageSlug);
     setPage(found?.page ?? null);
+    setReady(true);
   }, [spec.menuSlug, spec.pageSlug]);
+
+  if (!ready) {
+    // Content is client-persisted; show the page chrome with a quiet skeleton
+    // instead of flashing a “not published” message during hydration.
+    return (
+      <PublicSiteShell>
+        <section className="relative overflow-hidden" aria-busy="true" aria-live="polite">
+          <div className="mkt-mesh absolute inset-0" />
+          <div className="relative mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
+            <div className="h-3 w-24 rounded-full bg-[color:var(--bs-ink)]/10" />
+            <div className="mt-5 h-10 w-2/3 max-w-xl rounded-xl bg-[color:var(--bs-ink)]/10" />
+            <div className="mt-4 h-4 w-1/2 max-w-md rounded-full bg-[color:var(--bs-ink)]/8" />
+          </div>
+        </section>
+        <div className="mx-auto max-w-6xl px-4 pb-24 md:px-6">
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} className="h-28 rounded-2xl border border-[color:var(--bs-line)] bg-white/70" />
+            ))}
+          </div>
+        </div>
+      </PublicSiteShell>
+    );
+  }
 
   if (!page) {
     return (
@@ -101,11 +128,13 @@ export function MarketingCmsPage({
 function PageHero({
   eyebrow,
   title,
-  summary
+  summary,
+  actions = true
 }: {
   eyebrow: string;
   title: string;
   summary: string;
+  actions?: boolean;
 }) {
   return (
     <section className="relative overflow-hidden">
@@ -115,6 +144,16 @@ function PageHero({
           <p className="mkt-eyebrow">{eyebrow}</p>
           <h1 className="mkt-display mt-4 max-w-3xl text-4xl sm:text-5xl">{title}</h1>
           <p className="mkt-muted mt-5 max-w-2xl text-base leading-7 sm:text-lg">{summary}</p>
+          {actions ? (
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <MktCta href="/signup">
+                Create your company <ArrowRight className="size-4" />
+              </MktCta>
+              <MktCta href="/pricing" variant="secondary">
+                See pricing
+              </MktCta>
+            </div>
+          ) : null}
         </Reveal>
       </div>
     </section>
@@ -128,13 +167,13 @@ function AboutLayout({ page, image, officeImage }: { page: CmsPage; image: strin
       <section className="mx-auto max-w-6xl px-4 pb-8 md:px-6">
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { n: "Austin, TX", l: "U.S. headquarters" },
-            { n: "4 packages", l: "Silver to Professional" },
-            { n: "8a–6p ET", l: "Human support hours" }
+            { n: `${TOTAL_PAYABLE_APP_COUNT} apps`, l: `${BUSINESS_APP_COUNT} business + platform engines, one login` },
+            { n: "4 packages", l: "Silver, Gold, Platinum, Professional" },
+            { n: "4 deployments", l: "Shared SaaS · dedicated · self-hosted · intranet" }
           ].map((s) => (
-            <div key={s.l} className="rounded-2xl border border-[#e6ebf1] bg-white px-5 py-6">
-              <p className="text-xl font-semibold tracking-tight text-[#0a2540]">{s.n}</p>
-              <p className="mt-1 text-sm text-[#425466]">{s.l}</p>
+            <div key={s.l} className="rounded-2xl border border-[color:var(--bs-line)] bg-white px-5 py-6">
+              <p className="text-xl font-semibold tracking-tight text-[color:var(--bs-ink)]">{s.n}</p>
+              <p className="mt-1 text-sm text-slate-600">{s.l}</p>
             </div>
           ))}
         </div>
@@ -143,7 +182,7 @@ function AboutLayout({ page, image, officeImage }: { page: CmsPage; image: strin
         <CmsArticle title={page.title} content={page.content} hideTitle />
         <div className="space-y-4">
           <img src={image} alt="BusinessSuite team collaboration" className="h-72 w-full rounded-[1.5rem] object-cover shadow-[0_24px_50px_rgba(10,37,64,0.12)] sm:h-96" />
-          <img src={officeImage} alt="Austin office" className="hidden h-56 w-full rounded-[1.5rem] object-cover md:block" />
+          <img src={officeImage} alt="BusinessSuite team in a planning session" className="hidden h-56 w-full rounded-[1.5rem] object-cover md:block" />
         </div>
       </section>
       <section className="bg-white">
@@ -153,14 +192,14 @@ function AboutLayout({ page, image, officeImage }: { page: CmsPage; image: strin
           <div className="mt-10 grid gap-4 md:grid-cols-3">
             {aboutValues.map((v) => (
               <article key={v.title} className="mkt-card p-6">
-                <h3 className="font-semibold text-[#0a2540]">{v.title}</h3>
-                <p className="mt-2 text-sm leading-6 text-[#425466]">{v.text}</p>
+                <h3 className="font-semibold text-[color:var(--bs-ink)]">{v.title}</h3>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{v.text}</p>
               </article>
             ))}
           </div>
           <div className="mt-12 flex flex-col gap-3 sm:flex-row">
             <MktCta href="/signup">
-              Start your company <ArrowRight className="size-4" />
+              Create your company <ArrowRight className="size-4" />
             </MktCta>
             <MktCta href="/contact" variant="secondary">
               Talk to the team
@@ -175,27 +214,26 @@ function AboutLayout({ page, image, officeImage }: { page: CmsPage; image: strin
 function ContactLayout({ page }: { page: CmsPage }) {
   return (
     <>
-      <PageHero eyebrow="Contact" title={page.title} summary={page.summary} />
+      <PageHero eyebrow="Contact" title={page.title} summary={page.summary} actions={false} />
       <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-20 md:grid-cols-[0.9fr_1.1fr] md:px-6">
         <div className="space-y-4">
           {[
             { icon: Mail, label: "Sales & onboarding", value: "hello@businesssuite.app" },
-            { icon: Phone, label: "Phone", value: "+1 (512) 555-0148" },
-            { icon: Clock, label: "Hours", value: "Monday–Friday, 8:00 a.m.–6:00 p.m. ET" },
-            { icon: MapPin, label: "Headquarters", value: "500 West 2nd Street, Suite 1900, Austin, TX 78701" },
-            { icon: Building2, label: "Existing customers", value: "support@businesssuite.app · billing in-app" }
+            { icon: Clock, label: "Response time", value: "Within one business day — demos scheduled at your local time" },
+            { icon: Globe2, label: "Where we deploy", value: "Shared SaaS, dedicated cloud / VPS, self-hosted, or intranet — any region" },
+            { icon: Building2, label: "Existing customers", value: "support@businesssuite.app · billing in Administration → My company" }
           ].map((row) => (
-            <div key={row.label} className="flex gap-4 rounded-2xl border border-[#e6ebf1] bg-white p-5">
-              <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[#eef0ff] text-[color:var(--bs-teal)]">
+            <div key={row.label} className="flex gap-4 rounded-2xl border border-[color:var(--bs-line)] bg-white p-5">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--bs-cloud)] text-[color:var(--bs-teal)]">
                 <row.icon className="size-5" />
               </span>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">{row.label}</p>
-                <p className="mt-1 text-sm font-medium leading-6 text-[#0a2540]">{row.value}</p>
+                <p className="mt-1 text-sm font-medium leading-6 text-[color:var(--bs-ink)]">{row.value}</p>
               </div>
             </div>
           ))}
-          <div className="pt-2 text-sm leading-7 text-[#425466]">
+          <div className="pt-2 text-sm leading-7 text-slate-600">
             <CmsArticle title={page.title} content={page.content} hideTitle />
           </div>
         </div>
@@ -208,18 +246,21 @@ function ContactLayout({ page }: { page: CmsPage }) {
 function SecurityLayout({ page }: { page: CmsPage }) {
   return (
     <>
-      <PageHero eyebrow="Trust" title={page.title} summary={page.summary} />
+      <PageHero eyebrow="Trust" title={page.title} summary={page.summary} actions={false} />
       <section className="mx-auto max-w-6xl px-4 pb-8 md:px-6">
         <div className="grid gap-4 md:grid-cols-3">
           {[
-            { title: "Tenant isolation", text: "Each company workspace is scoped by tenant identifier, access control, and audit logging." },
+            { title: "Tenant isolation", text: "Each company workspace is scoped by tenant identifier in Postgres, with access control and audit logging on every write." },
             { title: "Menu-level rights", text: "View, create, update, and delete — by role, with per-user exceptions Super Admin can audit." },
-            { title: "Stripe on-site", text: "Card details are tokenized by Stripe Elements. We do not store full card numbers." }
+            { title: "Stripe on-site", text: "Card details are tokenized by Stripe Elements. We never see or store full card numbers." },
+            { title: "Encryption", text: "TLS in transit on every deployment; encrypted storage at rest on managed cloud and dedicated stacks." },
+            { title: "MFA & session guard", text: "TOTP two-factor for any user, mandatory for clinical PHI roles, with idle-session timeout and re-authentication." },
+            { title: "Audit & recovery", text: "Append-only audit log, soft-delete recycle bin on every register, and scheduled backups with documented restore drills." }
           ].map((card) => (
             <article key={card.title} className="mkt-card p-6">
               <ShieldCheck className="size-5 text-[color:var(--bs-teal)]" />
-              <h2 className="mt-4 font-semibold text-[#0a2540]">{card.title}</h2>
-              <p className="mt-2 text-sm leading-6 text-[#425466]">{card.text}</p>
+              <h2 className="mt-4 font-semibold text-[color:var(--bs-ink)]">{card.title}</h2>
+              <p className="mt-2 text-sm leading-6 text-slate-600">{card.text}</p>
             </article>
           ))}
         </div>
@@ -239,13 +280,13 @@ function SecurityLayout({ page }: { page: CmsPage }) {
 function LegalLayout({ page, headings }: { page: CmsPage; headings: { id: string; label: string }[] }) {
   return (
     <>
-      <PageHero eyebrow="Legal" title={page.title} summary={page.summary} />
+      <PageHero eyebrow="Legal" title={page.title} summary={page.summary} actions={false} />
       <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-20 md:grid-cols-[220px_minmax(0,42rem)] md:px-6">
         {headings.length > 0 ? (
           <aside className="hidden md:block">
-            <div className="sticky top-24 rounded-2xl border border-[#e6ebf1] bg-white p-4">
+            <div className="sticky top-24 rounded-2xl border border-[color:var(--bs-line)] bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-400">On this page</p>
-              <nav className="mt-3 flex flex-col gap-2 text-sm text-[#425466]">
+              <nav className="mt-3 flex flex-col gap-2 text-sm text-slate-600">
                 {headings.map((h) => (
                   <a key={h.id} href={`#${h.id}`} className="hover:text-[color:var(--bs-teal)]">
                     {h.label}
@@ -257,7 +298,7 @@ function LegalLayout({ page, headings }: { page: CmsPage; headings: { id: string
         ) : (
           <div className="hidden md:block" />
         )}
-        <div className="rounded-[1.5rem] border border-[#e6ebf1] bg-white p-6 sm:p-10">
+        <div className="rounded-[1.5rem] border border-[color:var(--bs-line)] bg-white p-6 sm:p-10">
           <CmsArticle title={page.title} content={page.content} hideTitle />
         </div>
       </section>
@@ -270,14 +311,14 @@ function ArticleLayout({ page, image }: { page: CmsPage; image: string }) {
     <>
       <PageHero eyebrow="BusinessSuite" title={page.title} summary={page.summary} />
       <section className="mx-auto grid max-w-6xl gap-10 px-4 pb-20 md:grid-cols-[1fr_0.85fr] md:px-6">
-        <div className="rounded-[1.5rem] border border-[#e6ebf1] bg-white p-6 sm:p-10">
+        <div className="rounded-[1.5rem] border border-[color:var(--bs-line)] bg-white p-6 sm:p-10">
           <CmsArticle title={page.title} content={page.content} hideTitle />
         </div>
         <div className="hidden md:block">
-          <img src={image} alt="" className="h-80 w-full rounded-[1.5rem] object-cover shadow-[0_24px_50px_rgba(10,37,64,0.12)]" />
+          <img src={image} alt={`${page.title} — BusinessSuite`} className="h-80 w-full rounded-[1.5rem] object-cover shadow-[0_24px_50px_rgba(10,37,64,0.12)]" />
           <div className="mt-6">
             <MktCta href="/signup">
-              Start free trial <ArrowRight className="size-4" />
+              Create your company <ArrowRight className="size-4" />
             </MktCta>
           </div>
         </div>

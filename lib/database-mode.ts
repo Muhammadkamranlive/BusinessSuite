@@ -9,7 +9,11 @@ export function isDatabasePrimary(): boolean {
       process.env.NEXT_PUBLIC_HRM_USE_SUPABASE === "true" ||
       process.env.NEXT_PUBLIC_AUTOMATION_USE_SUPABASE === "true" ||
       process.env.NEXT_PUBLIC_HEALTHCARE_MARKETPLACE_USE_SUPABASE === "true" ||
-      process.env.NEXT_PUBLIC_HMS_USE_SUPABASE === "true"
+      process.env.NEXT_PUBLIC_HMS_USE_SUPABASE === "true" ||
+      process.env.NEXT_PUBLIC_PHARMACY_USE_SUPABASE === "true" ||
+      process.env.NEXT_PUBLIC_DOCUMENTS_USE_SUPABASE === "true" ||
+      process.env.NEXT_PUBLIC_BI_USE_SUPABASE === "true" ||
+      process.env.NEXT_PUBLIC_FORMS_USE_SUPABASE === "true"
   );
 }
 

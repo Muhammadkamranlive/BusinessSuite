@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
 export function Button({
@@ -57,9 +58,11 @@ export function Field({
   );
 }
 
-export function TextInput({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
-  return <input className={cn("bs-input", className)} {...props} />;
-}
+export const TextInput = forwardRef<HTMLInputElement, React.InputHTMLAttributes<HTMLInputElement>>(
+  function TextInput({ className, ...props }, ref) {
+    return <input ref={ref} className={cn("bs-input", className)} {...props} />;
+  }
+);
 
 export function SelectInput({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
@@ -99,9 +102,9 @@ export function Badge({
         "inline-flex items-center rounded-[var(--bs-radius)] border px-2 py-1 text-xs font-semibold",
         tone === "neutral" && "border-[color:var(--bs-line)] bg-white text-slate-600",
         tone === "success" && "border-emerald-200 bg-emerald-50 text-emerald-700",
-        tone === "warning" && "border-amber-200 bg-amber-50 text-amber-700",
-        tone === "danger" && "border-rose-200 bg-rose-50 text-[color:var(--bs-coral)]",
-        tone === "info" && "border-cyan-200 bg-cyan-50 text-cyan-700"
+        tone === "warning" && "border-slate-200 bg-slate-100 text-slate-600",
+        tone === "danger" && "border-slate-300 bg-slate-100 text-slate-700",
+        tone === "info" && "border-sky-200 bg-sky-50 text-sky-800"
       )}
     >
       {children}
@@ -202,10 +205,16 @@ export function ActionCard({
 
 export function DataTable({
   columns,
-  rows
+  rows,
+  emptyTitle = "Nothing here yet",
+  emptyHint = "Records you add will appear in this list.",
+  emptyAction
 }: {
   columns: string[];
   rows: Array<Array<React.ReactNode>>;
+  emptyTitle?: string;
+  emptyHint?: string;
+  emptyAction?: React.ReactNode;
 }) {
   return (
     <div className="overflow-x-auto">
@@ -220,6 +229,15 @@ export function DataTable({
           </tr>
         </thead>
         <tbody>
+          {rows.length === 0 ? (
+            <tr>
+              <td colSpan={Math.max(1, columns.length)} className="px-3 py-10 text-center">
+                <p className="text-sm font-semibold text-[color:var(--bs-ink)]">{emptyTitle}</p>
+                <p className="mt-1 text-xs text-slate-500">{emptyHint}</p>
+                {emptyAction ? <div className="mt-3 flex justify-center">{emptyAction}</div> : null}
+              </td>
+            </tr>
+          ) : null}
           {rows.map((row, index) => (
             <tr key={index} className="border-b border-[color:var(--bs-line)]">
               {row.map((cell, cellIndex) => (
@@ -240,7 +258,7 @@ export function EmptyAccess({ moduleName }: { moduleName: string }) {
     <Panel className="flex min-h-[320px] flex-col items-center justify-center text-center">
       <p className="text-lg font-bold text-[color:var(--bs-ink)]">Access restricted</p>
       <p className="mt-2 max-w-md text-sm text-slate-500">
-        The selected account does not have permission to view {moduleName}. Ask an administrator to grant menu rights, or switch demo accounts.
+        Your account does not have permission to view {moduleName}. Ask your company administrator to grant this menu right under Administration → Access Control.
       </p>
     </Panel>
   );

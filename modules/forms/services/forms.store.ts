@@ -9,6 +9,9 @@ import type {
 import { notifySurveyAssigned } from "@/lib/email/triggers";
 import { createHrNotification, listEmployees } from "@/modules/hrm/services/hrm.store";
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
+import { getStoredTenantId } from "@/lib/auth/session";
+import { DEMO_TENANT_IDS, isDemoTenant } from "@/lib/demo-tenants";
+import type { FormsRemoteSnapshot } from "@/modules/forms/services/forms.supabase-sync";
 
 const STORAGE_KEY = "businesssuite:hrm-forms:v1";
 const STORAGE_VERSION = 1;
@@ -37,26 +40,59 @@ const assignments: FormAssignment[] = [];
 const responses: FormResponse[] = [];
 
 let hydrated = false;
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+
+function syncEnabled() {
+  return process.env.NEXT_PUBLIC_FORMS_USE_SUPABASE !== "false";
+}
 
 function buildSnapshot(): Snapshot {
   return { version: STORAGE_VERSION, forms, assignments, responses };
+}
+
+function queueFormsRemoteSync(immediate = false) {
+  if (typeof window === "undefined" || !syncEnabled()) return;
+  const push = () => {
+    const tenantId = getStoredTenantId() ?? undefined;
+    const snapshot: FormsRemoteSnapshot = {
+      version: 1,
+      tenantId,
+      forms: tenantId ? forms.filter((f) => f.tenant_id === tenantId) : [...forms],
+      assignments: tenantId ? assignments.filter((a) => a.tenant_id === tenantId) : [...assignments],
+      responses: tenantId ? responses.filter((r) => r.tenant_id === tenantId) : [...responses]
+    };
+    void fetch("/api/forms/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(snapshot)
+    }).catch(() => undefined);
+  };
+  if (immediate) {
+    if (syncTimer) clearTimeout(syncTimer);
+    push();
+    return;
+  }
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(push, 800);
 }
 
 function persist() {
   if (typeof window === "undefined") return;
   try {
     savePersisted(STORAGE_KEY, buildSnapshot());
+    queueFormsRemoteSync();
   } catch {
     /* ignore */
   }
 }
 
-function seedAlpha() {
-  if (forms.some((f) => f.tenant_id === "alpha")) return;
+function seedDemoFormsIfEmpty(tenantId: string): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  if (forms.some((f) => f.tenant_id === tenantId && f.is_active !== false)) return false;
 
   const onboarding = {
     id: id(),
-    tenant_id: "alpha",
+    tenant_id: tenantId,
     created_at: now(),
     updated_at: now(),
     is_active: true,
@@ -91,7 +127,7 @@ function seedAlpha() {
 
   const feedback = {
     id: id(),
-    tenant_id: "alpha",
+    tenant_id: tenantId,
     created_at: now(),
     updated_at: now(),
     is_active: true,
@@ -112,13 +148,51 @@ function seedAlpha() {
   } as CustomForm;
 
   forms.push(onboarding, feedback);
+  return true;
+}
+
+function seedAllDemoForms() {
+  let any = false;
+  for (const tenantId of DEMO_TENANT_IDS) {
+    if (seedDemoFormsIfEmpty(tenantId)) any = true;
+  }
+  return any;
+}
+
+export async function pullFormsFromSupabase(tenantId: string) {
+  if (typeof window === "undefined" || !syncEnabled()) return false;
+  ensureHydrated();
+  try {
+    const res = await fetch(`/api/forms/sync?tenantId=${encodeURIComponent(tenantId)}`);
+    const json = (await res.json()) as {
+      ok?: boolean;
+      skipped?: boolean;
+      snapshot?: FormsRemoteSnapshot;
+    };
+    if (!json.ok || json.skipped || !json.snapshot) return false;
+    const otherForms = forms.filter((f) => f.tenant_id !== tenantId);
+    const otherAssignments = assignments.filter((a) => a.tenant_id !== tenantId);
+    const otherResponses = responses.filter((r) => r.tenant_id !== tenantId);
+    forms.length = 0;
+    assignments.length = 0;
+    responses.length = 0;
+    forms.push(...(json.snapshot.forms ?? []), ...otherForms);
+    assignments.push(...(json.snapshot.assignments ?? []), ...otherAssignments);
+    responses.push(...(json.snapshot.responses ?? []), ...otherResponses);
+    seedDemoFormsIfEmpty(tenantId);
+    savePersisted(STORAGE_KEY, buildSnapshot());
+    queueFormsRemoteSync(true);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function ensureHydrated() {
   if (hydrated) return;
   hydrated = true;
   if (typeof window === "undefined") {
-    seedAlpha();
+    seedAllDemoForms();
     return;
   }
   try {
@@ -131,10 +205,7 @@ function ensureHydrated() {
         forms.push(...(snap.forms ?? []));
         assignments.push(...(snap.assignments ?? []));
         responses.push(...(snap.responses ?? []));
-        if (!forms.length) {
-          seedAlpha();
-          persist();
-        }
+        if (seedAllDemoForms()) persist();
         return;
       }
     }
@@ -144,7 +215,7 @@ function ensureHydrated() {
   forms.length = 0;
   assignments.length = 0;
   responses.length = 0;
-  seedAlpha();
+  seedAllDemoForms();
   persist();
 }
 

@@ -229,10 +229,10 @@ export function ModulePricingPicker() {
                         on ? "ring-2 ring-[color:var(--bs-teal)]" : "hover:ring-1 hover:ring-[color:var(--bs-line)]"
                       }`}
                     >
-                      <div className={`flex items-center gap-3 px-4 py-3 ${app.id === "email_engine" ? "bg-violet-50" : "bg-amber-50"}`}>
+                      <div className="flex items-center gap-3 bg-[color:var(--bs-cloud)] px-4 py-3">
                         <span
-                          className={`flex size-9 items-center justify-center rounded-xl ${
-                            app.id === "email_engine" ? "bg-violet-600 text-white" : "bg-amber-600 text-white"
+                          className={`flex size-9 items-center justify-center rounded-xl text-white ${
+                            app.id === "email_engine" ? "bg-[color:var(--bs-teal)]" : "bg-[color:var(--bs-ink)]"
                           }`}
                         >
                           <Icon className="size-4" aria-hidden />
@@ -266,7 +266,7 @@ export function ModulePricingPicker() {
                             </p>
                           ) : null}
                           {requiredByRule ? (
-                            <p className="mt-2 text-[11px] font-semibold text-amber-800">Auto-included with Rule Engine</p>
+                            <p className="mt-2 text-[11px] font-semibold text-[color:var(--bs-teal)]">Auto-included with Rule Engine</p>
                           ) : null}
                         </div>
                       </div>
@@ -280,12 +280,13 @@ export function ModulePricingPicker() {
           <Reveal delay={80}>
             <div className="mkt-card sticky top-24 overflow-hidden">
               <div className="bg-[color:var(--bs-ink)] px-6 py-5 text-white">
-                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-200">Your monthly estimate</p>
+                <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-teal-200">Your monthly estimate · USD</p>
                 <p className="mt-2 text-lg font-semibold">{basePkg.name} package</p>
                 <p className="mt-1 text-4xl font-bold tracking-tight">
                   {formatMoney(totalCents, "usd")}
                   <span className="text-base font-semibold text-white/70">/mo</span>
                 </p>
+                <p className="mt-1 text-xs text-white/60">≈ {formatMoney(totalCents * 12, "usd")}/yr billed monthly · annual plans discount the base package</p>
               </div>
               <div className="space-y-3 px-6 py-5 text-sm text-slate-600">
                 <div className="flex justify-between gap-3 border-b border-[color:var(--bs-line)] pb-3">
@@ -311,8 +312,8 @@ export function ModulePricingPicker() {
                 <MktButton type="button" onClick={goSignup} className="w-full">
                   Continue with {basePkg.name}
                 </MktButton>
-                <MktCta href="/contact?topic=custom-plan" variant="secondary" className="mt-3 w-full">
-                  Custom quote (self / intranet)
+                <MktCta href="/contact?topic=pricing" variant="secondary" className="mt-3 w-full">
+                  Custom quote (self-hosted / intranet)
                 </MktCta>
                 <p className="mt-4 text-center text-xs leading-5 text-slate-500">
                   <Link href={`/product/${emailEngineApp.productSlug}`} className="font-semibold text-[color:var(--bs-teal)]">

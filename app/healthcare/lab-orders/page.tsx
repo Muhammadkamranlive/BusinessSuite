@@ -16,13 +16,17 @@ import { persistExtraFields } from "@/modules/forms/services/extra-fields.store"
 import {
   addLabResult,
   collectLabSample,
+  createHl7InboxMessage,
   createLabOrder,
   exportLabReportPdf,
+  listHl7Inbox,
   listLabOrders,
   listLabResults,
   printLabBarcode,
+  processHl7Stub,
   pullHmsClinicalFromSupabase,
   subscribeHmsClinical,
+  type HmsHl7Inbox,
   type HmsLabOrder
 } from "@/modules/healthcare/services/hms-clinical.store";
 import { listPatients, pullHmsFromSupabase, subscribeHms } from "@/modules/healthcare/services/hms.store";
@@ -40,11 +44,17 @@ export default function HmsLabOrdersPage() {
   const [form, setForm] = useState({ patient_id: "", test_name: "", ordering_physician: "", sample_barcode: "" });
   const [resultForm, setResultForm] = useState({ test_name: "", result_value: "", unit: "", flag: "normal" as const });
   const [extraJson, setExtraJson] = useState("");
+  const [hl7Rows, setHl7Rows] = useState<HmsHl7Inbox[]>([]);
+  const [hl7Sample, setHl7Sample] = useState(
+    "MSH|^~\\&|LAB|FACILITY|HMS|FACILITY|20260925120000||ORU^R01|MSG001|P|2.5\nOBR|1||ORD-001|CBC^Complete Blood Count\nOBX|1|NM|WBC^White Blood Cells||7.2|10*3/uL|4.0-11.0|N"
+  );
+  const [hl7OrderId, setHl7OrderId] = useState("");
 
   function refresh() {
     setRows(listLabOrders(tenantId));
     setResults(listLabResults(tenantId));
     setPatients(listPatients(tenantId));
+    setHl7Rows(listHl7Inbox(tenantId));
   }
   useEffect(() => {
     void pullHmsClinicalFromSupabase(tenantId).finally(() => refresh());
@@ -285,6 +295,87 @@ export default function HmsLabOrdersPage() {
                         </>
                       )}
                     </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+      <Panel className="mt-4">
+        <h2 className="text-sm font-semibold">HL7 inbox stub</h2>
+        <p className="mt-1 text-xs text-slate-500">Paste a sample ORU^R01 message — stub parser only, not a live analyzer interface.</p>
+        <div className="mt-3 grid gap-3 lg:grid-cols-2">
+          <Field label="Sample HL7 message">
+            <textarea
+              className="bs-input min-h-[120px] w-full font-mono text-xs"
+              value={hl7Sample}
+              onChange={(e) => setHl7Sample(e.target.value)}
+            />
+          </Field>
+          <div className="space-y-3">
+            <Field label="Link lab order (optional)">
+              <SelectInput value={hl7OrderId} onChange={(e) => setHl7OrderId(e.target.value)}>
+                <option value="">Match by OBR order ref</option>
+                {rows.map((o) => (
+                  <option key={o.id} value={o.id}>
+                    {o.order_no} · {o.sample_barcode ?? "no barcode"}
+                  </option>
+                ))}
+              </SelectInput>
+            </Field>
+            <Button
+              type="button"
+              onClick={() => {
+                createHl7InboxMessage(tenantId, {
+                  raw_message: hl7Sample,
+                  lab_order_id: hl7OrderId || null,
+                  actor: "lab_tech"
+                });
+                refresh();
+              }}
+            >
+              Queue HL7 message
+            </Button>
+          </div>
+        </div>
+        <div className="mt-4 overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-slate-500">
+                <th className="px-3 py-2">Received</th>
+                <th>Status</th>
+                <th>Order ref</th>
+                <th />
+              </tr>
+            </thead>
+            <tbody>
+              {hl7Rows.slice(0, 10).map((m) => (
+                <tr key={m.id} className="border-t border-line">
+                  <td className="px-3 py-2 text-xs">{m.created_at.slice(0, 19)}</td>
+                  <td>
+                    <StatusBadge status={m.status} />
+                  </td>
+                  <td className="text-xs">{String(m.parsed_stub.order_ref ?? "—")}</td>
+                  <td>
+                    {m.status === "received" ? (
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        className="!px-2 !py-1 text-xs"
+                        onClick={() => {
+                          try {
+                            processHl7Stub(tenantId, m.id, "lab_tech");
+                            refresh();
+                          } catch (err) {
+                            alert(err instanceof Error ? err.message : "Process failed");
+                            refresh();
+                          }
+                        }}
+                      >
+                        Process stub
+                      </Button>
+                    ) : null}
                   </td>
                 </tr>
               ))}

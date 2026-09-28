@@ -83,7 +83,7 @@ export function GlobalMenuSearch({
   return (
     <div ref={wrapRef} className="relative w-full max-w-xl">
       <label className="relative block">
-        <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-[color:var(--bs-teal)]" aria-hidden="true" />
+        <Search className="pointer-events-none absolute left-3.5 top-1/2 size-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
         <input
           ref={inputRef}
           value={query}
@@ -95,7 +95,7 @@ export function GlobalMenuSearch({
           onKeyDown={onKeyDown}
           placeholder="Search menus…"
           aria-label="Search all ERP menus"
-          className="bs-input w-full pl-10 pr-3 text-sm shadow-soft sm:pr-12"
+          className="bs-input !h-9 w-full pl-10 pr-3 text-sm sm:pr-12"
         />
         <span className="pointer-events-none absolute right-3 top-1/2 hidden -translate-y-1/2 rounded border border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-slate-500 sm:inline">
           ⌘K
@@ -105,7 +105,7 @@ export function GlobalMenuSearch({
       {open ? (
         <div className="absolute left-0 right-0 top-[calc(100%+0.5rem)] z-50 max-h-[min(24rem,70dvh)] overflow-hidden rounded-[var(--bs-radius)] border border-[color:var(--bs-line)] bg-white shadow-soft">
           <div className="flex items-center gap-2 border-b border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)] px-3 py-2 text-xs font-semibold text-slate-500">
-            <Sparkles className="size-3.5 text-[color:var(--bs-teal)]" aria-hidden="true" />
+            <Sparkles className="size-3.5 text-slate-400" aria-hidden="true" />
             {query ? `Menus matching “${query}”` : "All menus you can access"}
           </div>
           <ul className="max-h-[min(20rem,60dvh)] overflow-y-auto overscroll-contain py-1">

@@ -473,22 +473,43 @@ export function PricingCards({
           }`}
         >
           <p className={`text-xs font-bold uppercase tracking-wide ${marketing ? "text-[color:var(--bs-teal)]" : "text-teal"}`}>{pkg.badge}</p>
-          <h3 className={`mt-1 text-xl ${marketing ? "font-semibold text-[#0a2540]" : "font-bold text-ink"}`}>{pkg.name}</h3>
+          <h3 className={`mt-1 text-xl ${marketing ? "font-semibold text-[color:var(--bs-ink)]" : "font-bold text-ink"}`}>{pkg.name}</h3>
           <p className="mt-1 text-sm text-slate-500">{pkg.tagline}</p>
-          <p className={`mt-4 text-3xl ${marketing ? "font-semibold tracking-tight text-[#0a2540]" : "font-bold text-ink"}`}>
+          <p className={`mt-4 text-3xl ${marketing ? "font-semibold tracking-tight text-[color:var(--bs-ink)]" : "font-bold text-ink"}`}>
             {formatMoney(priceFor(pkg, interval), pkg.currency)}
-            <span className="text-sm font-semibold text-slate-500">/{interval === "year" ? "yr" : "mo"}</span>
+            <span className="text-sm font-semibold text-slate-500">
+              {" "}
+              {pkg.currency.toUpperCase()}/{interval === "year" ? "yr" : "mo"}
+            </span>
           </p>
           {pkg.code === "professional" ? (
             <p className="mt-2 text-xs font-semibold uppercase tracking-[0.12em] text-[color:var(--bs-teal)]">
               Dedicated DB · domain · stack
             </p>
           ) : null}
-          <p className="mt-1 text-xs text-slate-500">
-            {interval === "year"
-              ? `${formatMoney(pkg.monthly_price_cents, pkg.currency)}/mo billed yearly`
-              : `or ${formatMoney(pkg.yearly_price_cents, pkg.currency)}/year`}
-          </p>
+          {(() => {
+            const monthlyEquivalent = Math.round(pkg.yearly_price_cents / 12);
+            const savings = pkg.monthly_price_cents * 12 - pkg.yearly_price_cents;
+            const savingsPct = pkg.monthly_price_cents > 0 ? Math.round((savings / (pkg.monthly_price_cents * 12)) * 100) : 0;
+            if (interval === "year") {
+              return (
+                <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+                  <span>{formatMoney(monthlyEquivalent, pkg.currency)}/mo billed yearly</span>
+                  {savings > 0 ? (
+                    <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                      Save {savingsPct}% · {formatMoney(savings, pkg.currency)}/yr
+                    </span>
+                  ) : null}
+                </p>
+              );
+            }
+            return (
+              <p className="mt-1 text-xs text-slate-500">
+                or {formatMoney(pkg.yearly_price_cents, pkg.currency)}/year
+                {savings > 0 ? ` — save ${savingsPct}% annually` : ""}
+              </p>
+            );
+          })()}
           <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-slate-500">
             {pkg.modules.length} apps in base · add more with pay per app
           </p>

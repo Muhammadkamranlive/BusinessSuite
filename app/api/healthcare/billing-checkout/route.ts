@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import { guardHealthcarePhiRoute } from "@/lib/auth/server/api-guard";
+import { invalidRequestResponse, requireTenantId, requireUuid } from "@/lib/healthcare/hms-request-validate";
+import { safeLog } from "@/lib/healthcare/phi-redact";
 import { appOrigin, stripeConfigured, stripeForm } from "@/lib/stripe/server";
 import { toDbTenantId } from "@/lib/tenants/ids";
 
@@ -19,6 +21,15 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return NextResponse.json({ ok: false, reason: "Invalid JSON" }, { status: 400 });
+  }
+
+  if (body.tenantId) {
+    const tenantCheck = requireTenantId(body.tenantId);
+    if (!tenantCheck.ok) return invalidRequestResponse(tenantCheck.error);
+  }
+  if (body.invoiceId) {
+    const invoiceCheck = requireUuid(body.invoiceId, "invoiceId");
+    if (!invoiceCheck.ok) return invalidRequestResponse(invoiceCheck.error);
   }
 
   const guard = await guardHealthcarePhiRoute(request, body.tenantId);
@@ -65,6 +76,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ ok: true, url, sessionId });
   } catch (err) {
+    safeLog("billing-checkout failed", { error: err instanceof Error ? err.message : "unknown" });
     const message = err instanceof Error ? err.message : "Stripe checkout failed";
     return NextResponse.json({ ok: false, reason: message }, { status: 502 });
   }

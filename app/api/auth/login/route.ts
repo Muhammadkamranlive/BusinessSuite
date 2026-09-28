@@ -4,6 +4,7 @@ import {
   getLockoutStatus,
   recordFailedLogin
 } from "@/lib/auth/server/account-lockout";
+import { emitSecurityAlert } from "@/lib/healthcare/security-alerts";
 import { enforceRateLimit } from "@/lib/auth/server/api-guard";
 import { DEFAULT_PASSWORD_MIN } from "@/lib/auth/server/password-policy";
 import { isServerAuthEnabled, loginPlatformUser } from "@/lib/auth/server/platform-users";
@@ -31,6 +32,7 @@ export async function POST(request: Request) {
 
   const lock = await getLockoutStatus(email);
   if (lock.locked) {
+    emitSecurityAlert({ kind: "login_lockout", email });
     const mins = lock.lockedUntil
       ? Math.max(1, Math.ceil((lock.lockedUntil - Date.now()) / 60000))
       : 30;

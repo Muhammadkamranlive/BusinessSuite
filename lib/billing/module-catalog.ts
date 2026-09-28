@@ -25,8 +25,8 @@ export type PlatformApp = {
   features: string[];
 };
 
-/** 13 business modules + 2 platform apps = 15 pay-per apps. */
-export const BUSINESS_APP_COUNT = 13;
+/** 14 business modules + 2 platform apps = 16 pay-per apps. */
+export const BUSINESS_APP_COUNT = 14;
 export const PLATFORM_APP_COUNT = 2;
 export const TOTAL_PAYABLE_APP_COUNT = BUSINESS_APP_COUNT + PLATFORM_APP_COUNT;
 
@@ -38,7 +38,14 @@ export const BILLABLE_MODULES: BillableModule[] = [
   { key: "inventory", label: "Inventory", tagline: "Stock, warehouses, transfers", productSlug: "inventory", addon_monthly_cents: 1500 },
   { key: "operations", label: "Operations", tagline: "BOM, work orders, maintenance", productSlug: "operations", addon_monthly_cents: 2500 },
   { key: "hrm", label: "HRM & Payroll", tagline: "Employees, leave, payroll", productSlug: "hrm", addon_monthly_cents: 2200 },
-  { key: "healthcare", label: "Healthcare HMS", tagline: "Patients, OPD, pharmacy", productSlug: "healthcare", addon_monthly_cents: 3500 },
+  { key: "healthcare", label: "Healthcare HMS", tagline: "Patients, OPD, IPD & clinical", productSlug: "healthcare", addon_monthly_cents: 3500 },
+  {
+    key: "pharmacy",
+    label: "Alif Pharmacy",
+    tagline: "Medical shop POS & stock",
+    productSlug: "pharmacy",
+    addon_monthly_cents: 2900
+  },
   { key: "documents", label: "Documents", tagline: "Files, compliance uploads", productSlug: "documents", addon_monthly_cents: 800 },
   { key: "finance", label: "Finance", tagline: "GL, banks, journals", productSlug: "finance", addon_monthly_cents: 2000 },
   { key: "projects", label: "Projects", tagline: "Tasks, timesheets, budgets", productSlug: "projects", addon_monthly_cents: 1200 },

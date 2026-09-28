@@ -1,12 +1,16 @@
 import { hydrateEmployeeLogins } from "@/lib/auth/provision-login";
 import { pullAutomationFromSupabase } from "@/modules/automation/services/automation.store";
+import { pullDocumentsFromSupabase } from "@/modules/documents/services/documents.store";
 import { pullExtraFieldsFromSupabase } from "@/modules/forms/services/extra-fields.store";
+import { pullFormsFromSupabase } from "@/modules/forms/services/forms.store";
 import { pullHmsClinicalFromSupabase } from "@/modules/healthcare/services/hms-clinical.store";
 import { pullHmsFromSupabase } from "@/modules/healthcare/services/hms.store";
 import { pullMarketplaceFromSupabase } from "@/modules/healthcare/services/pharmacy-marketplace.store";
 import { pullHrmFromSupabase } from "@/modules/hrm/services/hrm.store";
 import { pullWorkdayFromSupabase } from "@/modules/hrm/services/workday.store";
 import { pullOpsFromSupabase } from "@/modules/ops/services/ops-remote";
+import { pullPharmacyFromSupabase } from "@/modules/pharmacy/services/pharmacy.store";
+import { pullBiFromSupabase } from "@/modules/reporting/services/snapshots.store";
 
 /** Pull tenant modules from Supabase without blocking the shell. */
 export async function syncTenantFromRemote(tenantId: string) {
@@ -18,7 +22,14 @@ export async function syncTenantFromRemote(tenantId: string) {
     pullExtraFieldsFromSupabase(tenantId).catch(() => undefined),
     pullMarketplaceFromSupabase(tenantId).catch(() => undefined),
     pullHmsFromSupabase(tenantId).catch(() => undefined),
-    pullHmsClinicalFromSupabase(tenantId).catch(() => undefined)
+    pullHmsClinicalFromSupabase(tenantId).catch(() => undefined),
+    pullPharmacyFromSupabase(tenantId).catch(() => undefined)
+  ]);
+  // Documents seed from HR employees; forms/BI follow the same post-core pass.
+  await Promise.all([
+    pullDocumentsFromSupabase(tenantId).catch(() => undefined),
+    pullBiFromSupabase(tenantId).catch(() => undefined),
+    pullFormsFromSupabase(tenantId).catch(() => undefined)
   ]);
   hydrateEmployeeLogins(tenantId);
 }

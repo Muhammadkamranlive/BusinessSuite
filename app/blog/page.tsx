@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { PublicSiteShell } from "@/components/layout/public-site-shell";
+import { MktCta } from "@/components/marketing/mkt-button";
 import { ensureProductionSiteContent, listBlogs, type BlogPost } from "@/modules/cms/services/cms.store";
 
 export default function BlogIndexPage() {
@@ -23,6 +25,14 @@ export default function BlogIndexPage() {
           <p className="mkt-muted mt-5 max-w-2xl text-base leading-7">
             Practical writing on running a growing company — sales, stock, people, and finance.
           </p>
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <MktCta href="/signup">
+              Create your company <ArrowRight className="size-4" />
+            </MktCta>
+            <MktCta href="/contact?topic=demo" variant="secondary">
+              Book a demo
+            </MktCta>
+          </div>
         </div>
       </section>
       <div className="mx-auto max-w-6xl px-4 pb-20 md:px-6">
@@ -31,7 +41,7 @@ export default function BlogIndexPage() {
             <Link key={post.id} href={`/blog/${post.slug}`} className="mkt-card group overflow-hidden">
               <div className="h-44 overflow-hidden bg-[#f6f9fc]">
                 {post.coverImage ? (
-                  <img src={post.coverImage} alt="" className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                  <img src={post.coverImage} alt={post.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" />
                 ) : (
                   <div className="flex h-full items-center justify-center text-4xl">{post.coverEmoji}</div>
                 )}
@@ -44,8 +54,8 @@ export default function BlogIndexPage() {
                     </span>
                   ))}
                 </div>
-                <h2 className="mt-3 text-lg font-semibold text-[#0a2540]">{post.title}</h2>
-                <p className="mt-2 text-sm leading-6 text-[#425466]">{post.excerpt}</p>
+                <h2 className="mt-3 text-lg font-semibold text-[color:var(--bs-ink)]">{post.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{post.excerpt}</p>
                 <p className="mt-4 text-xs text-slate-400">
                   {post.author} · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString("en-US") : ""}
                 </p>

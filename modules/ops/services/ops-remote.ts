@@ -5,6 +5,8 @@ import { fetchJson } from "@/lib/sync-fetch";
 type OpsModule = {
   build: () => Partial<OpsRemoteSnapshot>;
   apply: (snapshot: Partial<OpsRemoteSnapshot>) => void;
+  /** When the pulled tenant has no rows, write demo registers and return true. */
+  seedIfEmpty?: (tenantId: string) => boolean;
 };
 
 const modules: OpsModule[] = [];
@@ -64,5 +66,12 @@ export async function pullOpsFromSupabase(tenantId?: string) {
   }
   const merged = tenantId ? mergeOpsPull(collectOpsSnapshot(), json.snapshot, tenantId) : json.snapshot;
   applyOpsSnapshot(merged);
+  if (tenantId) {
+    let seeded = false;
+    for (const mod of modules) {
+      if (mod.seedIfEmpty?.(tenantId)) seeded = true;
+    }
+    if (seeded) queueOpsRemoteSync();
+  }
   return { ok: true as const };
 }

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { PublicSiteShell } from "@/components/layout/public-site-shell";
 import { PricingCards } from "@/components/billing/subscription-checkout";
@@ -10,7 +10,14 @@ import { Reveal } from "@/components/marketing/reveal";
 import { MktCta } from "@/components/marketing/mkt-button";
 import { LaptopFrame } from "@/components/marketing/screenshot-frame";
 import { ModuleLaptopStage } from "@/components/marketing/module-laptop-stage";
-import { LandingHero } from "@/components/marketing/landing-hero";
+import { CinematicHero } from "@/components/marketing/cinematic/cinematic-hero";
+import { DataFlowStage } from "@/components/marketing/cinematic/data-flow-stage";
+import { ErpCommercialFilm } from "@/components/marketing/cinematic/erp-commercial-film";
+import { ScrollStatement } from "@/components/marketing/cinematic/kinetic-text";
+import { LiveCommandCenter } from "@/components/marketing/cinematic/live-command-center";
+import { ModuleReel } from "@/components/marketing/cinematic/module-reel";
+import { PricingFlowLine } from "@/components/marketing/cinematic/pricing-flow-line";
+import { SpotlightCursor } from "@/components/marketing/cinematic/spotlight-cursor";
 import { TrustStrip } from "@/components/marketing/trust-strip";
 import { FeatureBento } from "@/components/marketing/feature-bento";
 import { DeploymentOptions } from "@/components/marketing/deployment-options";
@@ -29,6 +36,7 @@ import { useLandingMedia } from "@/components/marketing/use-landing-media";
 export function LandingHome() {
   const router = useRouter();
   const media = useLandingMedia();
+  const flowHostRef = useRef<HTMLDivElement>(null);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [interval, setInterval] = useState<BillingInterval>("year");
   const shelf = [
@@ -44,9 +52,21 @@ export function LandingHome() {
 
   return (
     <PublicSiteShell>
-      <LandingHero />
+      <div ref={flowHostRef} className="relative">
+      <SpotlightCursor />
+      <PricingFlowLine hostRef={flowHostRef} />
+      <CinematicHero />
 
       <TrustStrip />
+
+      <ScrollStatement
+        eyebrow="Why one suite"
+        text="One company. One login. Every department posting into the same live ledger — from the first lead to the last payslip, from the warehouse floor to the hospital ward."
+      />
+
+      <ErpCommercialFilm />
+
+      <DataFlowStage />
 
       <section id="product" className="relative px-4 pb-4 pt-10 md:px-6">
         <Reveal className="mx-auto max-w-5xl">
@@ -64,37 +84,26 @@ export function LandingHome() {
         </Reveal>
       </section>
 
-      <section id="modules" className="bg-white">
+      <ModuleReel />
+
+      <section id="laptop-stage" className="bg-white">
         <div className="mx-auto max-w-6xl px-4 py-16 md:px-6 md:py-20">
           <Reveal className="mx-auto max-w-2xl text-center">
-            <p className="mkt-eyebrow">Inside the product</p>
+            <p className="mkt-eyebrow">Hands on</p>
             <h2 className="mkt-display mt-3 text-3xl text-[color:var(--bs-ink)] sm:text-4xl">
-              15 apps. Click one — the laptop shows that screen.
+              Click an app — the laptop switches to that screen.
             </h2>
             <p className="mkt-muted mt-4 text-[15px] leading-7">
-              13 business modules plus Email Engine and Rule Engine, one login. Screenshots are from the live product —
-              click a module and the laptop updates to that app.
+              Screenshots are from the live product, not mockups. Pick a module and the device updates in place.
             </p>
           </Reveal>
           <div className="mt-10">
             <ModuleLaptopStage />
           </div>
-          <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {productModules.map((item, i) => (
-              <Reveal key={item.slug} delay={(i % 3) * 60}>
-                <Link href={`/product/${item.slug}`} className="mkt-card block h-full p-5">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[color:var(--bs-teal)]">{item.eyebrow}</p>
-                  <h3 className="mt-2 text-lg font-semibold text-[color:var(--bs-ink)]">{item.title}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{item.summary}</p>
-                  <p className="mt-3 text-sm font-semibold text-[color:var(--bs-teal)]">
-                    Open {item.title} <ArrowRight className="ml-1 inline size-3.5" />
-                  </p>
-                </Link>
-              </Reveal>
-            ))}
-          </div>
         </div>
       </section>
+
+      <LiveCommandCenter />
 
       <FeatureBento />
 
@@ -106,17 +115,20 @@ export function LandingHome() {
 
       <InfraCompare />
 
-      <section id="pricing" className="border-t border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)]">
+      <section id="pricing" className="mkt-x-pricing relative border-t border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)]" data-flow-arrived="0">
+        <div className="mkt-x-pricing-splash" aria-hidden />
         <div className="mx-auto max-w-6xl px-4 py-20 md:px-6 md:py-24">
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="max-w-xl">
-              <p className="mkt-eyebrow">Pricing</p>
+              <p id="pricing-title" className="mkt-eyebrow mkt-x-pricing-eyebrow">
+                Pricing
+              </p>
               <h2 className="mkt-display mt-4 text-3xl text-[color:var(--bs-ink)] sm:text-4xl">
                 Base packages — pay per app for the rest
               </h2>
               <p className="mkt-muted mt-4 text-sm leading-6">
-                Silver through Platinum run on shared SaaS. Professional is dedicated — cloud, VPS, self-hosted, or
-                intranet. Every tier supports{" "}
+                Transparent USD pricing, billed monthly or annually. Silver through Platinum run on shared SaaS.
+                Professional is dedicated — cloud, VPS, self-hosted, or intranet. Every tier supports{" "}
                 <Link href="#build-your-plan" className="font-semibold text-[color:var(--bs-teal)] hover:underline">
                   pay per app
                 </Link>
@@ -140,7 +152,7 @@ export function LandingHome() {
               </button>
             </div>
           </div>
-          <div className="mkt-pricing mt-12">
+          <div className="mkt-pricing mkt-x-pricing-stage mt-12">
             <PricingCards
               appearance="marketing"
               interval={interval}
@@ -204,7 +216,7 @@ export function LandingHome() {
             </div>
             <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row">
               <MktCta href="/signup" variant="light" className="w-full sm:w-auto">
-                Get started <ArrowRight className="size-4" />
+                Create your company <ArrowRight className="size-4" />
               </MktCta>
               <MktCta href="/contact" variant="ghost" className="w-full border border-white/25 text-white hover:bg-white/10 sm:w-auto">
                 Talk to sales
@@ -213,6 +225,7 @@ export function LandingHome() {
           </div>
         </div>
       </section>
+      </div>
     </PublicSiteShell>
   );
 }

@@ -70,10 +70,24 @@ export default function SystemSettingsPage() {
         <Panel className="p-5">
           <h2 className="mb-4 text-lg font-bold text-ink">Locale & fiscal</h2>
           <div className="grid gap-4">
+            <Field label="Country (phone & ID formats)">
+              <SelectInput value={settings.country} onChange={(e) => update("country", e.target.value)}>
+                <option value="">Auto (from tenant / currency / timezone)</option>
+                <option value="PK">Pakistan — phone 03… + CNIC</option>
+                <option value="AE">United Arab Emirates — 05… + Emirates ID</option>
+                <option value="SA">Saudi Arabia — 05… + National ID</option>
+                <option value="US">United States — 10-digit + SSN/ID</option>
+                <option value="GB">United Kingdom — 07… + ID</option>
+                <option value="IN">India — 10-digit + Aadhaar</option>
+                <option value="INTL">International — flexible digits</option>
+              </SelectInput>
+            </Field>
             <Field label="Timezone">
               <SelectInput value={settings.timezone} onChange={(e) => update("timezone", e.target.value)}>
                 <option value="Asia/Dubai">Asia/Dubai</option>
                 <option value="Asia/Karachi">Asia/Karachi</option>
+                <option value="Asia/Riyadh">Asia/Riyadh</option>
+                <option value="Asia/Kolkata">Asia/Kolkata</option>
                 <option value="Europe/London">Europe/London</option>
                 <option value="America/New_York">America/New_York</option>
               </SelectInput>
@@ -84,6 +98,8 @@ export default function SystemSettingsPage() {
                 <option value="AED">AED</option>
                 <option value="PKR">PKR</option>
                 <option value="SAR">SAR</option>
+                <option value="GBP">GBP</option>
+                <option value="INR">INR</option>
               </SelectInput>
             </Field>
             <Field label="Date format">

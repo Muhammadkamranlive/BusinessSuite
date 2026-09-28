@@ -67,4 +67,5 @@ For large incidents or cross-region recovery, open a Supabase support ticket wit
 
 - AGENT_SPEC §2 — Automated backup schedule (documented here)
 - AGENT_SPEC §6 — RTO < 4h, RPO < 1h, tested restore quarterly
+- [HMS_COMPLIANCE.md](./HMS_COMPLIANCE.md) — RLS, MFA, audits, RBAC, rate limits, PHI redaction
 - Supabase docs: [Database Backups](https://supabase.com/docs/guides/platform/backups)

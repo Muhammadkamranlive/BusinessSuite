@@ -24,9 +24,10 @@ import {
   signInWithPassword
 } from "@/lib/auth/supabase-mfa";
 import { pullHmsFromSupabase, userRequiresHmsMfa } from "@/modules/healthcare/services/hms.store";
+import { TOTAL_PAYABLE_APP_COUNT } from "@/lib/billing/module-catalog";
 
 const trustPoints = [
-  "Pay per app — 15 apps with role rights inside each license",
+  `Pay per app — ${TOTAL_PAYABLE_APP_COUNT} apps with role rights inside each license`,
   "Tenant-isolated Postgres for every company",
   "Optional two-factor authentication (TOTP)"
 ];
@@ -133,13 +134,13 @@ function LoginForm() {
                 <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-[color:var(--bs-teal)]">
                   BusinessSuite
                 </p>
-                <h2 className="text-2xl font-semibold tracking-tight text-[#0a2540]">Welcome back</h2>
+                <h2 className="text-2xl font-semibold tracking-tight text-[color:var(--bs-ink)]">Welcome back</h2>
               </div>
             </div>
             <p className="mt-3 text-sm text-slate-500">
               No account yet?{" "}
               <Link href="/signup" className="font-semibold text-[color:var(--bs-teal)] hover:underline">
-                Start free trial
+                Create your company
               </Link>
             </p>
 
@@ -180,7 +181,7 @@ function LoginForm() {
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute inset-y-0 right-0 grid w-11 place-items-center text-slate-400 transition hover:text-[#0a2540]"
+                    className="absolute inset-y-0 right-0 grid w-11 place-items-center text-slate-400 transition hover:text-[color:var(--bs-ink)]"
                     aria-label={showPassword ? "Hide password" : "Show password"}
                   >
                     {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
@@ -193,8 +194,8 @@ function LoginForm() {
                   <Lock className="size-3.5 text-[color:var(--bs-teal)]" aria-hidden />
                   Encrypted session
                 </span>
-                <Link href="/contact" className="font-semibold text-[color:var(--bs-teal)] hover:underline">
-                  Need help?
+                <Link href="/contact?topic=support" className="font-semibold text-[color:var(--bs-teal)] hover:underline">
+                  Forgot password or need help?
                 </Link>
               </div>
 

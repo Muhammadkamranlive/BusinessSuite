@@ -2,6 +2,7 @@
 
 import { Plus } from "lucide-react";
 import { Reveal } from "@/components/marketing/reveal";
+import { BUSINESS_APP_COUNT, PLATFORM_APP_COUNT, TOTAL_PAYABLE_APP_COUNT } from "@/lib/billing/module-catalog";
 
 const faqs = [
   {
@@ -14,7 +15,23 @@ const faqs = [
   },
   {
     q: "Which apps are included?",
-    a: "Fifteen pay-per apps: Dashboard, CRM, Sales, Procurement, Inventory, Operations (BOM, work orders, maintenance), HRM & payroll, Hospital HMS (OPD, pharmacy, lab, wards), Projects, Documents, Finance, Reports/BI, Administration, plus platform apps Email Engine (compose, HTML templates) and Rule Engine (automations). Package tiers set your base bundle; add extra apps à la carte. Rule Engine requires Email Engine."
+    a: `${TOTAL_PAYABLE_APP_COUNT} pay-per apps — ${BUSINESS_APP_COUNT} business apps: Dashboard, CRM, Sales, Procurement, Inventory, Operations (BOM, work orders, maintenance), HRM & payroll, Hospital HMS (OPD/IPD, lab, wards), Alif Pharmacy POS, Projects, Documents, Finance, Reports/BI, Administration — plus ${PLATFORM_APP_COUNT} platform apps: Email Engine (compose, HTML templates) and Rule Engine (automations). Package tiers set your base bundle; add extra apps à la carte. Rule Engine requires Email Engine.`
+  },
+  {
+    q: "What uptime, SLA, and support do we get?",
+    a: "Shared SaaS targets 99.9% monthly availability with automated backups and monitoring; dedicated and Professional deployments come with a written SLA, named support contacts, and agreed maintenance windows. Support is available on business days by email and in-app, with priority queues for Platinum and Professional."
+  },
+  {
+    q: "Where is our data stored, and can we choose the region?",
+    a: "Shared SaaS runs in our managed cloud region. Dedicated cloud, self-hosted, and intranet deployments let you choose the country or data centre — including fully on-premise — to meet data-residency requirements."
+  },
+  {
+    q: "Is the Healthcare HMS HIPAA-ready? Will you sign a BAA?",
+    a: "The HMS ships HIPAA-aligned controls: role-based PHI access, MFA session guard, append-only PHI audit trail, break-glass logging, and exportable compliance packs. Business Associate Agreements are available for dedicated and Professional deployments — ask sales during scoping."
+  },
+  {
+    q: "What happens to our data if we cancel?",
+    a: "You keep access until the end of the paid term, can export every register to CSV or PDF at any time, and can request a full data export. After cancellation we retain data only as long as tax and legal obligations require, then delete it."
   },
   {
     q: "How does pay per app work?",

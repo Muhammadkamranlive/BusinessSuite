@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Bell, CheckCheck } from "lucide-react";
 import { NavLink } from "@/components/navigation/nav-link";
-import { Button } from "@/components/ui";
 import {
   getUnreadCount,
   getUserNotifications,
@@ -66,10 +65,9 @@ export function NotificationBell({
 
   return (
     <div className="relative" ref={rootRef}>
-      <Button
+      <button
         type="button"
-        variant="ghost"
-        className="relative size-11 shrink-0 px-0"
+        className="relative inline-flex size-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:text-ink"
         aria-label={unread ? `${unread} unread notifications` : "Notifications"}
         aria-expanded={open}
         aria-haspopup="dialog"
@@ -78,11 +76,11 @@ export function NotificationBell({
       >
         <Bell className="size-4" aria-hidden="true" />
         {unread > 0 ? (
-          <span className="absolute right-1.5 top-1.5 inline-flex min-w-4 items-center justify-center rounded-full bg-[color:var(--bs-coral)] px-1 text-[10px] font-bold leading-4 text-white">
+          <span className="absolute -right-1 -top-1 inline-flex min-w-4 items-center justify-center rounded-full bg-[color:var(--bs-ink)] px-1 text-[10px] font-bold leading-4 text-white ring-2 ring-white">
             {unread > 99 ? "99+" : unread}
           </span>
         ) : null}
-      </Button>
+      </button>
 
       {open ? (
         <div

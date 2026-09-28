@@ -3,6 +3,7 @@
  * In-memory with optional Postgres persistence when Supabase admin is available.
  */
 
+import { emitSecurityAlert } from "@/lib/healthcare/security-alerts";
 import { getSupabaseAdminClient, hasSecretKey } from "@/lib/supabase/server";
 
 export const LOCKOUT_MAX_ATTEMPTS = 5;
@@ -104,6 +105,7 @@ export async function recordFailedLogin(email: string): Promise<{
   memory.set(key, state);
   await persist(key, state);
   if (state.lockedUntil && state.lockedUntil > now) {
+    emitSecurityAlert({ kind: "login_lockout", email: key });
     return { locked: true, remainingAttempts: 0, lockedUntil: state.lockedUntil };
   }
   return {

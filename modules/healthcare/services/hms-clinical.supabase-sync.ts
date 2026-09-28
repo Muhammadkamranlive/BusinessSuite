@@ -26,11 +26,18 @@ import type {
   HmsVital,
   HmsWard,
   HmsBranchShareConsent,
+  HmsConsumable,
+  HmsConsumableMovement,
   HmsDoctorLeave,
   HmsEmrAttachment,
+  HmsHl7Inbox,
   HmsPharmacyPoItem,
   HmsPharmacyPurchaseOrder,
+  HmsQualityIndicator,
+  HmsRegulatoryReport,
   HmsReminderQueue,
+  HmsSsoConfig,
+  HmsStaffAttendance,
   HmsWaitlistEntry
 } from "@/modules/healthcare/model/hms-clinical";
 
@@ -68,6 +75,13 @@ export type HmsClinicalRemoteSnapshot = {
   pharmacyPoItems?: HmsPharmacyPoItem[];
   branchShareConsents?: HmsBranchShareConsent[];
   reminderQueue?: HmsReminderQueue[];
+  consumables?: HmsConsumable[];
+  consumableMovements?: HmsConsumableMovement[];
+  qualityIndicators?: HmsQualityIndicator[];
+  regulatoryReports?: HmsRegulatoryReport[];
+  hl7Inbox?: HmsHl7Inbox[];
+  ssoConfigs?: HmsSsoConfig[];
+  staffAttendance?: HmsStaffAttendance[];
 };
 
 function remap(row: Record<string, unknown>, toDb: boolean) {
@@ -569,6 +583,103 @@ function branchShareFromDb(row: Record<string, unknown>): HmsBranchShareConsent 
   };
 }
 
+function consumableFromDb(row: Record<string, unknown>): HmsConsumable {
+  const r = remap(row, false);
+  return {
+    ...entityBase(r),
+    sku: String(r.sku),
+    name: String(r.name),
+    category: str(r.category),
+    quantity: num(r.quantity),
+    reorder_level: num(r.reorder_level),
+    unit: String(r.unit ?? "each"),
+    location: str(r.location)
+  };
+}
+
+function consumableMovementFromDb(row: Record<string, unknown>): HmsConsumableMovement {
+  const r = remap(row, false);
+  return {
+    id: String(r.id),
+    tenant_id: String(r.tenant_id),
+    consumable_id: String(r.consumable_id),
+    qty_delta: num(r.qty_delta),
+    reason: String(r.reason),
+    created_by: str(r.created_by),
+    created_at: String(r.created_at)
+  };
+}
+
+function qualityIndicatorFromDb(row: Record<string, unknown>): HmsQualityIndicator {
+  const r = remap(row, false);
+  return {
+    ...entityBase(r),
+    code: String(r.code),
+    name: String(r.name),
+    period: String(r.period),
+    value_text: String(r.value_text),
+    target_text: str(r.target_text),
+    status: (r.status as HmsQualityIndicator["status"]) ?? "on_track",
+    notes: str(r.notes)
+  };
+}
+
+function regulatoryReportFromDb(row: Record<string, unknown>): HmsRegulatoryReport {
+  const r = remap(row, false);
+  return {
+    id: String(r.id),
+    tenant_id: String(r.tenant_id),
+    template_key: String(r.template_key),
+    region: String(r.region ?? "default"),
+    title: String(r.title),
+    period_start: String(r.period_start).slice(0, 10),
+    period_end: String(r.period_end).slice(0, 10),
+    payload: (r.payload as Record<string, unknown>) ?? {},
+    status: (r.status as HmsRegulatoryReport["status"]) ?? "draft",
+    generated_at: str(r.generated_at),
+    created_at: String(r.created_at),
+    updated_at: String(r.updated_at ?? r.created_at)
+  };
+}
+
+function hl7InboxFromDb(row: Record<string, unknown>): HmsHl7Inbox {
+  const r = remap(row, false);
+  return {
+    id: String(r.id),
+    tenant_id: String(r.tenant_id),
+    raw_message: String(r.raw_message),
+    parsed_stub: (r.parsed_stub as Record<string, unknown>) ?? {},
+    status: (r.status as HmsHl7Inbox["status"]) ?? "received",
+    lab_order_id: str(r.lab_order_id),
+    created_at: String(r.created_at)
+  };
+}
+
+function ssoConfigFromDb(row: Record<string, unknown>): HmsSsoConfig {
+  const r = remap(row, false);
+  return {
+    ...entityBase(r),
+    provider: (r.provider as HmsSsoConfig["provider"]) ?? "oidc",
+    issuer_url: String(r.issuer_url),
+    client_id: String(r.client_id),
+    client_secret_ref: String(r.client_secret_ref ?? "vault://stub-not-configured"),
+    enabled: Boolean(r.enabled),
+    notes: str(r.notes)
+  };
+}
+
+function staffAttendanceFromDb(row: Record<string, unknown>): HmsStaffAttendance {
+  const r = remap(row, false);
+  return {
+    ...entityBase(r),
+    staff_id: String(r.staff_id),
+    work_date: String(r.work_date).slice(0, 10),
+    check_in: str(r.check_in),
+    check_out: str(r.check_out),
+    status: (r.status as HmsStaffAttendance["status"]) ?? "present"
+  };
+}
+
 function reminderFromDb(row: Record<string, unknown>): HmsReminderQueue {
   const r = remap(row, false);
   return {
@@ -673,6 +784,23 @@ export async function pushHmsClinicalSnapshot(snapshot: HmsClinicalRemoteSnapsho
     errors
   );
   await upsert(admin, "hms_reminder_queue", (snapshot.reminderQueue ?? []).map((r) => toDb({ ...r })), errors);
+  await upsert(admin, "hms_consumables", (snapshot.consumables ?? []).map((r) => toDb({ ...r })), errors);
+  await upsert(
+    admin,
+    "hms_consumable_movements",
+    (snapshot.consumableMovements ?? []).map((r) => toDb({ ...r })),
+    errors
+  );
+  await upsert(admin, "hms_quality_indicators", (snapshot.qualityIndicators ?? []).map((r) => toDb({ ...r })), errors);
+  await upsert(
+    admin,
+    "hms_regulatory_reports",
+    (snapshot.regulatoryReports ?? []).map((r) => toDb({ ...r })),
+    errors
+  );
+  await upsert(admin, "hms_hl7_inbox", (snapshot.hl7Inbox ?? []).map((r) => toDb({ ...r })), errors);
+  await upsert(admin, "hms_sso_configs", (snapshot.ssoConfigs ?? []).map((r) => toDb({ ...r })), errors);
+  await upsert(admin, "hms_staff_attendance", (snapshot.staffAttendance ?? []).map((r) => toDb({ ...r })), errors);
 
   return { ok: errors.length === 0, errors };
 }
@@ -716,7 +844,14 @@ export async function pullHmsClinicalSnapshot(uiTenantId?: string) {
     "hms_pharmacy_purchase_orders",
     "hms_pharmacy_po_items",
     "hms_branch_share_consents",
-    "hms_reminder_queue"
+    "hms_reminder_queue",
+    "hms_consumables",
+    "hms_consumable_movements",
+    "hms_quality_indicators",
+    "hms_regulatory_reports",
+    "hms_hl7_inbox",
+    "hms_sso_configs",
+    "hms_staff_attendance"
   ] as const;
 
   const results: Record<string, unknown[]> = {};
@@ -763,7 +898,14 @@ export async function pullHmsClinicalSnapshot(uiTenantId?: string) {
     pharmacyPos: (results.hms_pharmacy_purchase_orders as Record<string, unknown>[]).map(pharmacyPoFromDb),
     pharmacyPoItems: (results.hms_pharmacy_po_items as Record<string, unknown>[]).map(pharmacyPoItemFromDb),
     branchShareConsents: (results.hms_branch_share_consents as Record<string, unknown>[]).map(branchShareFromDb),
-    reminderQueue: (results.hms_reminder_queue as Record<string, unknown>[]).map(reminderFromDb)
+    reminderQueue: (results.hms_reminder_queue as Record<string, unknown>[]).map(reminderFromDb),
+    consumables: (results.hms_consumables as Record<string, unknown>[]).map(consumableFromDb),
+    consumableMovements: (results.hms_consumable_movements as Record<string, unknown>[]).map(consumableMovementFromDb),
+    qualityIndicators: (results.hms_quality_indicators as Record<string, unknown>[]).map(qualityIndicatorFromDb),
+    regulatoryReports: (results.hms_regulatory_reports as Record<string, unknown>[]).map(regulatoryReportFromDb),
+    hl7Inbox: (results.hms_hl7_inbox as Record<string, unknown>[]).map(hl7InboxFromDb),
+    ssoConfigs: (results.hms_sso_configs as Record<string, unknown>[]).map(ssoConfigFromDb),
+    staffAttendance: (results.hms_staff_attendance as Record<string, unknown>[]).map(staffAttendanceFromDb)
   };
 
   return { ok: errors.length === 0 || snapshot.wards.length > 0 || true, snapshot, errors: errors.length ? errors : undefined };

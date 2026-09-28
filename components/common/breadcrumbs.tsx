@@ -23,7 +23,7 @@ export function Breadcrumbs({
       <ol className="flex flex-wrap items-center gap-1 text-sm">
         <li className="flex items-center gap-1">
           <Link
-            href="/dashboard"
+            href="/apps"
             className="inline-flex items-center gap-1.5 rounded-[var(--bs-radius)] px-1.5 py-0.5 font-semibold text-slate-500 transition hover:bg-cloud hover:text-ink"
           >
             <Home className="size-3.5" aria-hidden="true" />

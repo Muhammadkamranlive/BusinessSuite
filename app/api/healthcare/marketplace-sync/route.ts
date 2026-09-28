@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { guardHealthcarePhiRoute } from "@/lib/auth/server/api-guard";
 import {
+  assertJsonObject,
+  invalidRequestResponse,
+  requireTenantId
+} from "@/lib/healthcare/hms-request-validate";
+import { safeLog } from "@/lib/healthcare/phi-redact";
+import {
   isMarketplaceSupabaseSyncEnabled,
   pullMarketplaceSnapshot,
   pushMarketplaceSnapshot,
@@ -10,7 +16,12 @@ import {
 export const runtime = "nodejs";
 
 export async function GET(request: Request) {
-  const tenantId = new URL(request.url).searchParams.get("tenantId") ?? undefined;
+  const tenantParam = new URL(request.url).searchParams.get("tenantId");
+  const tenantId = tenantParam ?? undefined;
+  if (tenantParam) {
+    const check = requireTenantId(tenantParam);
+    if (!check.ok) return invalidRequestResponse(check.error);
+  }
   const guard = await guardHealthcarePhiRoute(request, tenantId);
   if (!guard.ok) return guard.response;
 
@@ -22,11 +33,16 @@ export async function GET(request: Request) {
     });
   }
 
-  const result = await pullMarketplaceSnapshot(tenantId ?? guard.session.tenantId);
-  if (!result.ok && !result.snapshot) {
-    return NextResponse.json(result, { status: 502 });
+  try {
+    const result = await pullMarketplaceSnapshot(tenantId ?? guard.session.tenantId);
+    if (!result.ok && !result.snapshot) {
+      return NextResponse.json(result, { status: 502 });
+    }
+    return NextResponse.json(result);
+  } catch (err) {
+    safeLog("marketplace-sync GET failed", { error: err instanceof Error ? err.message : "unknown" });
+    return NextResponse.json({ ok: false, reason: "Marketplace sync failed" }, { status: 502 });
   }
-  return NextResponse.json(result);
 }
 
 export async function POST(request: Request) {
@@ -37,7 +53,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, reason: "Invalid JSON body" }, { status: 400 });
   }
 
-  if (!body || typeof body !== "object" || body.version == null) {
+  if (!assertJsonObject(body) || body.version == null) {
     return NextResponse.json({ ok: false, reason: "Expected marketplace snapshot payload" }, { status: 400 });
   }
 
@@ -45,6 +61,10 @@ export async function POST(request: Request) {
     (body as { partners?: Array<{ tenant_id?: string }> }).partners?.[0]?.tenant_id ??
     (body as { tenantId?: string }).tenantId ??
     null;
+  if (tenantHint) {
+    const check = requireTenantId(String(tenantHint));
+    if (!check.ok) return invalidRequestResponse(check.error);
+  }
   const guard = await guardHealthcarePhiRoute(request, tenantHint);
   if (!guard.ok) return guard.response;
 
@@ -56,6 +76,11 @@ export async function POST(request: Request) {
     });
   }
 
-  const result = await pushMarketplaceSnapshot(body);
-  return NextResponse.json(result, { status: result.ok ? 200 : 502 });
+  try {
+    const result = await pushMarketplaceSnapshot(body);
+    return NextResponse.json(result, { status: result.ok ? 200 : 502 });
+  } catch (err) {
+    safeLog("marketplace-sync POST failed", { error: err instanceof Error ? err.message : "unknown" });
+    return NextResponse.json({ ok: false, reason: "Marketplace sync push failed" }, { status: 502 });
+  }
 }

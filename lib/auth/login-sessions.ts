@@ -37,6 +37,17 @@ export function knownDeviceFingerprints(email: string): Set<string> {
 }
 
 /** Record a login; returns whether this fingerprint is new for the user. */
+export function clearLoginSessions(email: string) {
+  const key = keyFor(email);
+  const store = readStore();
+  delete store[key];
+  writeStore(store);
+}
+
+export function clearAllLoginSessions() {
+  writeStore({});
+}
+
 export function recordLoginSession(input: {
   email: string;
   tenantId: string;

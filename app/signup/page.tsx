@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
-import { ArrowRight, Check, ShieldCheck, X } from "lucide-react";
+import { ArrowRight, Check, Eye, EyeOff, ShieldCheck, X } from "lucide-react";
 import { PublicSiteShell } from "@/components/layout/public-site-shell";
 import { SubscriptionCheckout } from "@/components/billing/subscription-checkout";
 import { MktButton } from "@/components/marketing/mkt-button";
@@ -256,6 +256,7 @@ function SignupInner() {
   const [error, setError] = useState("");
   const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const selectedPkg = packages.find((p) => p.code === form.planCode) ?? packages[0];
   const strength = useMemo(() => passwordStrength(form.password), [form.password]);
@@ -308,7 +309,7 @@ function SignupInner() {
         name: form.companyName.trim(),
         industry: form.industry.trim() || "General business",
         region: form.region.trim() || "Global",
-        plan: "Demo Pro",
+        plan: selectedPkg?.name ?? "Pending package",
         status: "active",
         email: form.email.trim().toLowerCase(),
         phone: ""
@@ -430,13 +431,24 @@ function SignupInner() {
                     ) : null}
                   </Field>
                   <Field label="Password">
-                    <TextInput
-                      required
-                      type="password"
-                      autoComplete="new-password"
-                      value={form.password}
-                      onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    />
+                    <div className="relative">
+                      <TextInput
+                        required
+                        type={showPassword ? "text" : "password"}
+                        autoComplete="new-password"
+                        className="pr-11"
+                        value={form.password}
+                        onChange={(e) => setForm({ ...form, password: e.target.value })}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((v) => !v)}
+                        className="absolute inset-y-0 right-0 grid w-11 place-items-center text-slate-400 transition hover:text-[color:var(--bs-ink)]"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                      >
+                        {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                      </button>
+                    </div>
                     <div className="mt-2">
                       <div className="flex gap-1">
                         {[1, 2, 3, 4].map((i) => (
@@ -471,7 +483,7 @@ function SignupInner() {
                   <Field label="Confirm password">
                     <TextInput
                       required
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       autoComplete="new-password"
                       value={form.confirm}
                       onChange={(e) => setForm({ ...form, confirm: e.target.value })}

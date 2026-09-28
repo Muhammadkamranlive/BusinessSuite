@@ -18,21 +18,25 @@ export function MfaSessionGuard() {
     checkedRef.current = true;
 
     void (async () => {
-      const email = getStoredUserEmail();
-      const tenantId = getStoredTenantId();
-      if (!email || !tenantId) return;
+      try {
+        const email = getStoredUserEmail();
+        const tenantId = getStoredTenantId();
+        if (!email || !tenantId) return;
 
-      await pullHmsFromSupabase(tenantId).catch(() => undefined);
-      const hmsRequired = userRequiresHmsMfa(email, tenantId) || isHmsMfaPending();
-      if (!hmsRequired && !isSupabaseAuthEnabled()) return;
+        await pullHmsFromSupabase(tenantId).catch(() => undefined);
+        const hmsRequired = userRequiresHmsMfa(email, tenantId) || isHmsMfaPending();
+        if (!hmsRequired && !isSupabaseAuthEnabled()) return;
 
-      const gateNeeded = await mustCompleteMfaGate(hmsRequired);
-      if (gateNeeded) {
-        setHmsMfaPending(hmsRequired);
-        if (pathname !== "/login/mfa") router.replace("/login/mfa");
-        return;
+        const gateNeeded = await mustCompleteMfaGate(hmsRequired);
+        if (gateNeeded) {
+          setHmsMfaPending(hmsRequired);
+          if (pathname !== "/login/mfa") router.replace("/login/mfa");
+          return;
+        }
+        setHmsMfaPending(false);
+      } catch {
+        /* network / supabase unreachable — do not block the shell */
       }
-      setHmsMfaPending(false);
     })();
   }, [pathname, router]);
 

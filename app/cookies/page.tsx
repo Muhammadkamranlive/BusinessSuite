@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { MarketingCmsPage } from "@/components/marketing/marketing-cms-page";
 
 export const metadata: Metadata = {
-  title: "Cookie policy | BusinessSuite",
+  title: "Cookie policy",
   description: "Cookies and similar technologies used on the BusinessSuite website and product."
 };
 

@@ -14,23 +14,30 @@ import { exportListCsv } from "@/lib/list-export";
 import { filterAndSort } from "@/lib/list-query";
 import { persistExtraFields } from "@/modules/forms/services/extra-fields.store";
 import {
+  checkInStaff,
+  checkOutStaff,
   createDutyRoster,
   createStaff,
   listDutyRosters,
   listStaff,
+  listStaffAttendance,
   pullHmsClinicalFromSupabase,
+  setStaffAttendanceStatus,
   subscribeHmsClinical,
   updateStaff,
   type HmsDutyRoster,
-  type HmsStaff
+  type HmsStaff,
+  type HmsStaffAttendance
 } from "@/modules/healthcare/services/hms-clinical.store";
 
 export default function HmsRostersPage() {
   const tenantId = getStoredTenantId() ?? "alpha";
   const { askSave, dialog } = useConfirm();
-  const [tab, setTab] = useState<"staff" | "roster">("staff");
+  const [tab, setTab] = useState<"staff" | "roster" | "attendance">("staff");
   const [staffRows, setStaffRows] = useState<HmsStaff[]>([]);
   const [rosterRows, setRosterRows] = useState<HmsDutyRoster[]>([]);
+  const [attendanceRows, setAttendanceRows] = useState<HmsStaffAttendance[]>([]);
+  const [attendanceDate, setAttendanceDate] = useState(new Date().toISOString().slice(0, 10));
   const [search, setSearch] = useState("");
   const [openStaff, setOpenStaff] = useState(false);
   const [openRoster, setOpenRoster] = useState(false);
@@ -42,11 +49,12 @@ export default function HmsRostersPage() {
   function refresh() {
     setStaffRows(listStaff(tenantId));
     setRosterRows(listDutyRosters(tenantId));
+    setAttendanceRows(listStaffAttendance(tenantId, attendanceDate));
   }
   useEffect(() => {
     void pullHmsClinicalFromSupabase(tenantId).finally(() => refresh());
     return subscribeHmsClinical(() => refresh());
-  }, [tenantId]);
+  }, [tenantId, attendanceDate]);
 
   const staffFiltered = useMemo(
     () =>
@@ -116,7 +124,7 @@ export default function HmsRostersPage() {
       <ModuleBreadcrumbs />
       <PageHeader
         title="Staff & duty rosters"
-        description="Clinical staff registry and shift scheduling."
+        description="Clinical staff registry, shift scheduling, and HMS attendance check-in."
         actionLabel={tab === "staff" ? "Add staff" : "Add shift"}
         onAction={() => {
           if (tab === "staff") {
@@ -136,6 +144,9 @@ export default function HmsRostersPage() {
         </Button>
         <Button type="button" variant={tab === "roster" ? "primary" : "secondary"} onClick={() => setTab("roster")}>
           Rosters ({rosterRows.length})
+        </Button>
+        <Button type="button" variant={tab === "attendance" ? "primary" : "secondary"} onClick={() => setTab("attendance")}>
+          Attendance
         </Button>
       </div>
       {openStaff ? (
@@ -224,6 +235,14 @@ export default function HmsRostersPage() {
           </form>
         </Panel>
       ) : null}
+      {tab === "attendance" ? (
+        <Panel className="mb-4">
+          <Field label="Work date">
+            <TextInput type="date" value={attendanceDate} onChange={(e) => setAttendanceDate(e.target.value)} />
+          </Field>
+          <p className="mt-2 text-xs text-slate-500">Payroll processing stays in HRM — this is HMS shift attendance only.</p>
+        </Panel>
+      ) : null}
       <Panel>
         <DataListToolbar
           search={search}
@@ -232,16 +251,68 @@ export default function HmsRostersPage() {
             exportListCsv({
               tenantId,
               module: "healthcare",
-              filename: tab === "staff" ? "hms-staff" : "hms-rosters",
+              filename: tab === "staff" ? "hms-staff" : tab === "roster" ? "hms-rosters" : "hms-attendance",
               rows:
                 tab === "staff"
                   ? staffFiltered.map((r) => ({ StaffNo: r.staff_no, Name: r.full_name, Role: r.role_title ?? "", Dept: r.department ?? "" }))
-                  : rosterFiltered.map((r) => ({ Date: r.shift_date, Staff: r.staff_name, Shift: r.shift_type, Ward: r.ward_name ?? "" }))
+                  : tab === "roster"
+                    ? rosterFiltered.map((r) => ({ Date: r.shift_date, Staff: r.staff_name, Shift: r.shift_type, Ward: r.ward_name ?? "" }))
+                    : staffRows.map((s) => {
+                        const att = attendanceRows.find((a) => a.staff_id === s.id);
+                        return {
+                          Date: attendanceDate,
+                          Staff: s.full_name,
+                          Status: att?.status ?? "—",
+                          CheckIn: att?.check_in?.slice(11, 16) ?? "",
+                          CheckOut: att?.check_out?.slice(11, 16) ?? ""
+                        };
+                      })
             })
           }
         />
         <div className="mt-3 overflow-x-auto">
-          {tab === "staff" ? (
+          {tab === "attendance" ? (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-slate-500">
+                  <th className="px-3 py-2">Staff</th>
+                  <th>Status</th>
+                  <th>Check in</th>
+                  <th>Check out</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {staffFiltered.map((s) => {
+                  const att = attendanceRows.find((a) => a.staff_id === s.id);
+                  return (
+                    <tr key={s.id} className="border-t border-line">
+                      <td className="px-3 py-3">
+                        <div className="font-semibold">{s.full_name}</div>
+                        <div className="text-xs text-slate-500">{s.staff_no}</div>
+                      </td>
+                      <td>{att?.status ?? "—"}</td>
+                      <td className="text-xs">{att?.check_in?.slice(11, 19) ?? "—"}</td>
+                      <td className="text-xs">{att?.check_out?.slice(11, 19) ?? "—"}</td>
+                      <td>
+                        <div className="flex flex-wrap gap-1">
+                          <Button type="button" variant="secondary" className="!px-2 !py-1 text-xs" onClick={() => { checkInStaff(tenantId, s.id, attendanceDate); refresh(); }}>
+                            Check in
+                          </Button>
+                          <Button type="button" variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => { try { checkOutStaff(tenantId, s.id, attendanceDate); refresh(); } catch { undefined; } }}>
+                            Check out
+                          </Button>
+                          <Button type="button" variant="ghost" className="!px-2 !py-1 text-xs" onClick={() => { setStaffAttendanceStatus(tenantId, s.id, "leave", attendanceDate); refresh(); }}>
+                            Leave
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : tab === "staff" ? (
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left text-slate-500">

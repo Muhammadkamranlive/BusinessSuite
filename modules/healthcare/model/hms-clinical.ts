@@ -430,3 +430,85 @@ export type HmsDoctorLeave = TenantEntity & {
   reason?: string | null;
   created_by?: string | null;
 };
+
+export type HmsConsumable = TenantEntity & {
+  sku: string;
+  name: string;
+  category?: string | null;
+  quantity: number;
+  reorder_level: number;
+  unit: string;
+  location?: string | null;
+};
+
+export type HmsConsumableMovement = {
+  id: UUID;
+  tenant_id: UUID;
+  consumable_id: UUID;
+  qty_delta: number;
+  reason: string;
+  created_by?: string | null;
+  created_at: string;
+};
+
+export type HmsQualityIndicatorStatus = "on_track" | "at_risk" | "breached";
+
+export type HmsQualityIndicator = TenantEntity & {
+  code: string;
+  name: string;
+  period: string;
+  value_text: string;
+  target_text?: string | null;
+  status: HmsQualityIndicatorStatus;
+  notes?: string | null;
+};
+
+export type HmsRegulatoryReportStatus = "draft" | "generated";
+
+export type HmsRegulatoryReport = {
+  id: UUID;
+  tenant_id: UUID;
+  template_key: string;
+  region: string;
+  title: string;
+  period_start: string;
+  period_end: string;
+  payload: Record<string, unknown>;
+  status: HmsRegulatoryReportStatus;
+  generated_at?: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type HmsHl7InboxStatus = "received" | "processed" | "failed";
+
+export type HmsHl7Inbox = {
+  id: UUID;
+  tenant_id: UUID;
+  raw_message: string;
+  parsed_stub: Record<string, unknown>;
+  status: HmsHl7InboxStatus;
+  lab_order_id?: UUID | null;
+  created_at: string;
+};
+
+export type HmsSsoProvider = "oidc" | "saml";
+
+export type HmsSsoConfig = TenantEntity & {
+  provider: HmsSsoProvider;
+  issuer_url: string;
+  client_id: string;
+  client_secret_ref: string;
+  enabled: boolean;
+  notes?: string | null;
+};
+
+export type HmsStaffAttendanceStatus = "present" | "absent" | "leave";
+
+export type HmsStaffAttendance = TenantEntity & {
+  staff_id: UUID;
+  work_date: string;
+  check_in?: string | null;
+  check_out?: string | null;
+  status: HmsStaffAttendanceStatus;
+};

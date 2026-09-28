@@ -8,6 +8,7 @@ import { listTaxes, postLedgerPair } from "@/modules/finance/services/finance.st
 import { getProductStock, listProducts, listWarehouses, postStockMovement } from "@/modules/inventory/services/inventory.store";
 import { getCustomerPriceGroup, listCustomers, updateDeal } from "@/modules/crm/services/crm.store";
 import { queueOpsRemoteSync, registerOpsModule } from "@/modules/ops/services/ops-remote";
+import { isDemoTenant } from "@/lib/demo-tenants";
 import { notifyInvoiceGenerated, notifyOrderApproved } from "@/lib/email/triggers";
 import { getSystemSettings } from "@/modules/admin/services/admin.store";
 
@@ -910,6 +911,77 @@ export function trashSalesperson(id: UUID) { ensureHydrated(); return trashEntit
 export function updatePriceList(id: UUID, data: Partial<PriceList>) { ensureHydrated(); return updateEntityInCollection(priceListRef, id, data); }
 export function trashPriceList(id: UUID) { ensureHydrated(); return trashEntityInCollection(priceListRef, id); }
 
+function seedSalesIfEmpty(tenantId: UUID): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  if (invoices.some((i) => i.tenant_id === tenantId && i.is_active !== false)) return false;
+  const customer = listCustomers(tenantId)[0];
+  const product = listProducts(tenantId)[0];
+  if (!customer) return false;
+  const ts = now();
+  const lines = product
+    ? [{ product_id: product.id, sku: product.sku, description: product.name, quantity: 10, unit_price: product.sale_price }]
+    : [{ product_id: null, sku: "SKU-1001", description: "Cotton bale 480lb", quantity: 10, unit_price: 510 }];
+  const subtotal = linesSubtotal(lines);
+  const tax_amount = Math.round(subtotal * 0.05);
+  const total_amount = subtotal + tax_amount;
+  const quoteId = id();
+  const orderId = id();
+  const invoiceId = id();
+  quotations.unshift({
+    id: quoteId,
+    tenant_id: tenantId,
+    quotation_no: generateDocumentNumber(tenantId, "quotation"),
+    customer_name: customer.name,
+    customer_id: customer.id,
+    quotation_date: today(),
+    valid_until: today(),
+    status: "accepted",
+    total_amount,
+    lines,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  salesOrders.unshift({
+    id: orderId,
+    tenant_id: tenantId,
+    order_no: generateDocumentNumber(tenantId, "sales_order"),
+    customer_name: customer.name,
+    customer_id: customer.id,
+    order_date: today(),
+    status: "confirmed",
+    total_amount,
+    lines,
+    quotation_id: quoteId,
+    warehouse_id: defaultWarehouse(tenantId),
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  invoices.unshift({
+    id: invoiceId,
+    tenant_id: tenantId,
+    invoice_no: generateDocumentNumber(tenantId, "invoice"),
+    customer_name: customer.name,
+    customer_id: customer.id,
+    invoice_date: today(),
+    due_date: today(),
+    status: "sent",
+    subtotal,
+    tax_amount,
+    total_amount,
+    paid_amount: 0,
+    balance_due: total_amount,
+    lines,
+    sales_order_id: orderId,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  });
+  persist();
+  return true;
+}
+
 registerOpsModule({
   build: () => ({
     invoices: invoices as unknown as Record<string, unknown>[],
@@ -950,5 +1022,9 @@ registerOpsModule({
       priceListItems,
       discountSchemes
     });
+  },
+  seedIfEmpty: (tenantId) => {
+    ensureHydrated();
+    return seedSalesIfEmpty(tenantId);
   }
 });

@@ -2,6 +2,7 @@ import type { UUID } from "@/modules/core/types";
 import { generateDocumentNumber } from "@/modules/core/services/numbering.service";
 import { logCreate } from "@/modules/core/services/audit.service";
 import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } from "@/modules/core/services/entity-crud";
+import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import {
   MARKETPLACE_CATEGORIES,
   type ClinicOrder,
@@ -36,7 +37,9 @@ function id() {
   return crypto.randomUUID();
 }
 
-/** In-memory session cache only — durable source of truth is Postgres via /api/healthcare/marketplace-sync. */
+const STORAGE_KEY = "businesssuite:healthcare-marketplace:v1";
+
+/** Session cache — durable source of truth is Postgres via /api/healthcare/marketplace-sync. */
 let pharmacies: PharmacyPartner[] = [];
 let products: MarketplaceProduct[] = [];
 let providers: ProviderCredential[] = [];
@@ -60,6 +63,7 @@ function isClientSyncEnabled() {
 }
 
 export function buildMarketplaceSnapshot(tenantId?: string): MarketplaceRemoteSnapshot {
+  ensureHydrated();
   const filterTenant = <T extends { tenant_id: string }>(rows: T[]) =>
     tenantId ? rows.filter((r) => r.tenant_id === tenantId) : rows;
   return {
@@ -77,6 +81,16 @@ export function buildMarketplaceSnapshot(tenantId?: string): MarketplaceRemoteSn
 export function queueMarketplaceRemoteSync(tenantId?: string, immediate = false) {
   if (typeof window === "undefined") return;
   if (!isClientSyncEnabled()) return;
+  ensureHydrated();
+  savePersisted(STORAGE_KEY, {
+    version: 1,
+    pharmacies,
+    products,
+    providers,
+    orders,
+    compliance,
+    seededTenants
+  });
   if (tenantId) pendingTenantId = tenantId;
 
   const push = () => {
@@ -102,6 +116,16 @@ export function queueMarketplaceRemoteSync(tenantId?: string, immediate = false)
 }
 
 function persist(tenantId?: string) {
+  ensureHydrated();
+  savePersisted(STORAGE_KEY, {
+    version: 1,
+    pharmacies,
+    products,
+    providers,
+    orders,
+    compliance,
+    seededTenants
+  });
   emitChange();
   queueMarketplaceRemoteSync(tenantId, false);
 }
@@ -110,6 +134,7 @@ function persist(tenantId?: string) {
 export async function pullMarketplaceFromSupabase(tenantId: string) {
   if (typeof window === "undefined") return false;
   if (!isClientSyncEnabled()) return false;
+  ensureHydrated();
   try {
     const res = await fetch(`/api/healthcare/marketplace-sync?tenantId=${encodeURIComponent(tenantId)}`);
     const json = (await res.json()) as {
@@ -132,6 +157,15 @@ export async function pullMarketplaceFromSupabase(tenantId: string) {
       seedDemoTenant(tenantId);
     }
     hydrated = true;
+    savePersisted(STORAGE_KEY, {
+      version: 1,
+      pharmacies,
+      products,
+      providers,
+      orders,
+      compliance,
+      seededTenants
+    });
     emitChange();
     return true;
   } catch {
@@ -146,7 +180,28 @@ export function subscribeMarketplace(listener: () => void) {
 }
 
 function ensureHydrated() {
+  if (hydrated || typeof window === "undefined") {
+    hydrated = true;
+    return;
+  }
   hydrated = true;
+  const snap = loadPersisted<{
+    version: number;
+    pharmacies?: PharmacyPartner[];
+    products?: MarketplaceProduct[];
+    providers?: ProviderCredential[];
+    orders?: ClinicOrder[];
+    compliance?: ComplianceEvent[];
+    seededTenants?: string[];
+  }>(STORAGE_KEY);
+  if (snap?.version === 1) {
+    pharmacies = snap.pharmacies ?? [];
+    products = snap.products ?? [];
+    providers = snap.providers ?? [];
+    orders = snap.orders ?? [];
+    compliance = snap.compliance ?? [];
+    seededTenants = snap.seededTenants ?? [];
+  }
 }
 
 function touchCompliance(

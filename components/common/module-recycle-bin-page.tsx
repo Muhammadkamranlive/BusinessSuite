@@ -19,7 +19,8 @@ const MODULE_META: Record<
   finance: { activeModule: "finance", trashModule: "finance", title: "Finance recycle bin" },
   projects: { activeModule: "projects", trashModule: "projects", title: "Projects recycle bin" },
   operations: { activeModule: "operations", trashModule: "operations", title: "Operations recycle bin" },
-  healthcare: { activeModule: "healthcare", trashModule: "healthcare", title: "Healthcare recycle bin" }
+  healthcare: { activeModule: "healthcare", trashModule: "healthcare", title: "Healthcare recycle bin" },
+  pharmacy: { activeModule: "pharmacy", trashModule: "pharmacy", title: "Alif Pharmacy recycle bin" }
 };
 
 export function ModuleRecycleBinPage({ moduleSlug }: { moduleSlug: keyof typeof MODULE_META }) {

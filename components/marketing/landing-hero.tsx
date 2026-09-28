@@ -55,7 +55,7 @@ export function LandingHero() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <MktCta href="/signup" className="w-full min-w-[11.5rem] sm:w-auto">
-                Start your company <ArrowRight className="size-4" />
+                Create your company <ArrowRight className="size-4" />
               </MktCta>
               <MktCta href="/#modules" variant="secondary" className="w-full min-w-[11.5rem] sm:w-auto">
                 <Play className="size-4" /> Tour the modules
@@ -89,10 +89,31 @@ export function LandingHero() {
           <Reveal delay={120} className="relative min-w-0">
             <div className="mkt-hero-scene">
               <div className="mkt-hero-scene-glow" aria-hidden />
-              <div className="mkt-hero-shot">
+              <div
+                className="pointer-events-none absolute -right-6 -top-8 z-[1] hidden w-[46%] max-w-[17rem] overflow-hidden rounded-2xl border border-white/40 shadow-[0_20px_50px_rgba(15,36,82,0.22)] sm:block lg:-right-4 lg:-top-10"
+                aria-hidden
+              >
+                <img
+                  src="/marketing/cinematic/erp-commercial-hero.png"
+                  alt=""
+                  className="mkt-cine-ken aspect-[16/10] w-full object-cover"
+                  loading="eager"
+                />
+              </div>
+              <div className="mkt-hero-shot relative z-[2]">
                 <img
                   src={mediaUrl("hero.dashboard", media)}
                   alt="BusinessSuite executive dashboard — live operational mix, CRM funnel, and company KPIs"
+                />
+              </div>
+              <div
+                className="pointer-events-none absolute -bottom-4 left-2 z-[3] h-16 w-20 opacity-95 sm:left-4 sm:h-20 sm:w-24"
+                aria-hidden
+              >
+                <img
+                  src="/marketing/cinematic/orbit-apps.svg"
+                  alt=""
+                  className="h-full w-full object-contain drop-shadow-md"
                 />
               </div>
             </div>

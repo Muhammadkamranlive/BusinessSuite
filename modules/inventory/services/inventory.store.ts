@@ -4,6 +4,7 @@ import { logCreate } from "@/modules/core/services/audit.service";
 import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } from "@/modules/core/services/entity-crud";
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
 import { queueOpsRemoteSync, registerOpsModule } from "@/modules/ops/services/ops-remote";
+import { isDemoTenant } from "@/lib/demo-tenants";
 
 function now() { return new Date().toISOString(); }
 function id() { return crypto.randomUUID(); }
@@ -306,6 +307,91 @@ export function updateAdjustment(id: UUID, data: Partial<StockAdjustment>) { ens
 export function trashAdjustment(id: UUID) { ensureHydrated(); return trashEntityInCollection(adjustmentRef, id); }
 export function trashStockMovement(id: UUID) { ensureHydrated(); return trashEntityInCollection(movementRef, id); }
 
+function seedInventoryIfEmpty(tenantId: UUID): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  if (products.some((p) => p.tenant_id === tenantId && p.is_active !== false)) return false;
+  const ts = now();
+  const cat = {
+    id: id(),
+    tenant_id: tenantId,
+    code: "FG",
+    name: "Finished goods",
+    description: "Saleable stock",
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  };
+  categories.unshift(cat);
+  const wh = {
+    id: id(),
+    tenant_id: tenantId,
+    name: "Main warehouse",
+    code: "WH-MAIN",
+    location: "Dubai",
+    status: "active",
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  };
+  warehouses.unshift(wh);
+  const p1 = {
+    id: id(),
+    tenant_id: tenantId,
+    sku: "SKU-1001",
+    name: "Cotton bale 480lb",
+    category_id: cat.id,
+    unit: "bale",
+    purchase_price: 420,
+    sale_price: 510,
+    tax_rate: 5,
+    reorder_level: 12,
+    status: "active" as const,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  };
+  const p2 = {
+    id: id(),
+    tenant_id: tenantId,
+    sku: "SKU-2044",
+    name: "Brake pad set",
+    category_id: cat.id,
+    unit: "set",
+    purchase_price: 18,
+    sale_price: 32,
+    tax_rate: 5,
+    reorder_level: 40,
+    status: "active" as const,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  };
+  const p3 = {
+    id: id(),
+    tenant_id: tenantId,
+    sku: "SKU-3302",
+    name: "A4 copier paper (ream)",
+    category_id: cat.id,
+    unit: "ream",
+    purchase_price: 3.2,
+    sale_price: 4.8,
+    tax_rate: 5,
+    reorder_level: 80,
+    status: "active" as const,
+    created_at: ts,
+    updated_at: ts,
+    is_active: true
+  };
+  products.unshift(p1, p2, p3);
+  stockBalances.push(
+    { tenant_id: tenantId, product_id: p1.id, warehouse_id: wh.id, quantity_on_hand: 48 },
+    { tenant_id: tenantId, product_id: p2.id, warehouse_id: wh.id, quantity_on_hand: 220 },
+    { tenant_id: tenantId, product_id: p3.id, warehouse_id: wh.id, quantity_on_hand: 160 }
+  );
+  persist();
+  return true;
+}
+
 registerOpsModule({
   build: () => ({
     products: products as unknown as Record<string, unknown>[],
@@ -334,5 +420,9 @@ registerOpsModule({
       transfers,
       adjustments
     });
+  },
+  seedIfEmpty: (tenantId) => {
+    ensureHydrated();
+    return seedInventoryIfEmpty(tenantId);
   }
 });

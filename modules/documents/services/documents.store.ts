@@ -16,6 +16,8 @@ import { deleteDocumentBlob, uploadDocumentFile } from "@/modules/documents/serv
 import { createHrNotification, listEmployees } from "@/modules/hrm/services/hrm.store";
 import { tenants as demoTenants } from "@/lib/demo-data";
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
+import { getStoredTenantId } from "@/lib/auth/session";
+import type { DocumentsRemoteSnapshot } from "@/modules/documents/services/documents.supabase-sync";
 
 const STORAGE_KEY = "businesssuite:documents:v1";
 const DEMO_TENANT_SLUGS = demoTenants.map((t) => t.id);
@@ -110,6 +112,36 @@ let documents: ManagedDocument[] = [];
 let assignments: DocumentAssignment[] = [];
 let history: DocumentChangeEvent[] = [];
 let hydrated = false;
+let syncTimer: ReturnType<typeof setTimeout> | null = null;
+
+function syncEnabled() {
+  return process.env.NEXT_PUBLIC_DOCUMENTS_USE_SUPABASE !== "false";
+}
+
+function queueDocumentsRemoteSync(immediate = false) {
+  if (typeof window === "undefined" || !syncEnabled()) return;
+  const push = () => {
+    const tenantId = getStoredTenantId() ?? undefined;
+    const snapshot: DocumentsRemoteSnapshot = {
+      version: 1,
+      tenantId,
+      requirements: tenantId ? requirements.filter((r) => r.tenant_id === tenantId) : requirements,
+      documents: tenantId ? documents.filter((d) => d.tenant_id === tenantId) : documents
+    };
+    void fetch("/api/documents/sync", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(snapshot)
+    }).catch(() => undefined);
+  };
+  if (immediate) {
+    if (syncTimer) clearTimeout(syncTimer);
+    push();
+    return;
+  }
+  if (syncTimer) clearTimeout(syncTimer);
+  syncTimer = setTimeout(push, 800);
+}
 
 function ensureSeeded() {
   for (const tenant of DEMO_TENANT_SLUGS) {
@@ -158,6 +190,30 @@ function persist() {
   if (typeof window === "undefined") return;
   const snap: Snapshot = { version: 2, requirements, documents, assignments, history };
   savePersisted(STORAGE_KEY, snap);
+  queueDocumentsRemoteSync();
+}
+
+export async function pullDocumentsFromSupabase(tenantId: string) {
+  if (typeof window === "undefined" || !syncEnabled()) return false;
+  ensureHydrated();
+  try {
+    const res = await fetch(`/api/documents/sync?tenantId=${encodeURIComponent(tenantId)}`);
+    const json = (await res.json()) as {
+      ok?: boolean;
+      skipped?: boolean;
+      snapshot?: DocumentsRemoteSnapshot;
+    };
+    if (!json.ok || json.skipped || !json.snapshot) return false;
+    requirements = [...json.snapshot.requirements, ...requirements.filter((r) => r.tenant_id !== tenantId)];
+    documents = [...json.snapshot.documents, ...documents.filter((d) => d.tenant_id !== tenantId)];
+    ensureSeeded();
+    seedDemoDocumentsIfEmpty(tenantId);
+    savePersisted(STORAGE_KEY, { version: 2, requirements, documents, assignments, history });
+    queueDocumentsRemoteSync(true);
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 function ensureHydrated() {

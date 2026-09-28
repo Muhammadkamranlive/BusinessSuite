@@ -4,6 +4,7 @@ import {
   requireApiSession,
   requireHealthcareAccess
 } from "@/lib/auth/server/api-guard";
+import { invalidRequestResponse, requireTenantId, requireUuid } from "@/lib/healthcare/hms-request-validate";
 
 export const runtime = "nodejs";
 
@@ -43,7 +44,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "patient_id and scheduled_at required" }, { status: 400 });
   }
 
+  const patientCheck = requireUuid(patientId, "patient_id");
+  if (!patientCheck.ok) return invalidRequestResponse(patientCheck.error);
+
   const tenantId = body.tenantId?.trim() || sessionResult.session.tenantId;
+  const tenantCheck = requireTenantId(tenantId);
+  if (!tenantCheck.ok) return invalidRequestResponse(tenantCheck.error);
 
   return NextResponse.json({
     ok: true,

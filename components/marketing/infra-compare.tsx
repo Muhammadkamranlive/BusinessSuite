@@ -86,8 +86,11 @@ export function InfraCompare() {
               ))}
             </div>
             <div className="mt-6">
-              <MktCta href="/signup?plan=professional&interval=year" className="w-full sm:w-auto">
-                Talk Professional
+              <MktCta href="/contact?topic=professional" className="w-full sm:w-auto">
+                Scope Professional with sales
+              </MktCta>
+              <MktCta href="/signup?plan=professional&interval=year" variant="secondary" className="mt-3 w-full sm:ml-3 sm:mt-0 sm:w-auto">
+                Self-serve signup
               </MktCta>
             </div>
           </Reveal>

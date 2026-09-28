@@ -19,7 +19,7 @@ export type DesignTokens = {
 export const defaultDesignTokens: DesignTokens = {
   ink: "#0f2452",
   cloud: "#eef5f1",
-  line: "#d4e4db",
+  line: "#b8c9c0",
   teal: "#1877f2",
   coral: "#e41e3f",
   amber: "#87b8f8",

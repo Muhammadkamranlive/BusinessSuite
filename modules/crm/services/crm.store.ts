@@ -12,8 +12,8 @@ import { generateDocumentNumber } from "@/modules/core/services/numbering.servic
 import { logCreate, logUpdate } from "@/modules/core/services/audit.service";
 import { bindTrashRestore, trashEntityInCollection, updateEntityInCollection } from "@/modules/core/services/entity-crud";
 import { loadPersisted, savePersisted } from "@/modules/core/services/local-persist";
-import { isClientDatabasePrimary } from "@/lib/database-mode";
-import { queueOpsRemoteSync, registerOpsModule } from "@/modules/ops/services/ops-remote";
+import { queueOpsRemoteSync, registerOpsModule, isOpsClientSyncEnabled } from "@/modules/ops/services/ops-remote";
+import { isDemoTenant } from "@/lib/demo-tenants";
 import type { UUID } from "@/modules/core/types";
 
 function now() {
@@ -35,16 +35,17 @@ let tickets: Ticket[] = [];
 
 const STORAGE_KEY = "businesssuite:crm:v3";
 const STORAGE_VERSION = 3;
-const DEMO_ALPHA = "alpha";
 let hydrated = false;
 
-function seedAlphaCrm() {
-  if (customers.some((c) => c.tenant_id === DEMO_ALPHA)) return;
+/** Starter CRM registers for a demo tenant when Postgres (and local cache) are empty. */
+function seedCrmIfEmpty(tenantId: string): boolean {
+  if (!isDemoTenant(tenantId)) return false;
+  if (customers.some((c) => c.tenant_id === tenantId && c.is_active !== false)) return false;
 
   const eastern = {
     id: id(),
-    tenant_id: DEMO_ALPHA,
-    customer_no: generateDocumentNumber(DEMO_ALPHA, "customer"),
+    tenant_id: tenantId,
+    customer_no: generateDocumentNumber(tenantId, "customer"),
     name: "Eastern Retail Group",
     type: "company" as const,
     email: "billing@easternretail.example",
@@ -59,8 +60,8 @@ function seedAlphaCrm() {
   };
   const urban = {
     id: id(),
-    tenant_id: DEMO_ALPHA,
-    customer_no: generateDocumentNumber(DEMO_ALPHA, "customer"),
+    tenant_id: tenantId,
+    customer_no: generateDocumentNumber(tenantId, "customer"),
     name: "Urban Fashion Mills",
     type: "company" as const,
     email: "accounts@urbanfashion.example",
@@ -75,12 +76,12 @@ function seedAlphaCrm() {
   };
   customers.push(eastern, urban);
 
-  if (!leads.some((l) => l.tenant_id === DEMO_ALPHA)) {
+  if (!leads.some((l) => l.tenant_id === tenantId)) {
     leads.push(
       {
         id: id(),
-        tenant_id: DEMO_ALPHA,
-        lead_no: generateDocumentNumber(DEMO_ALPHA, "lead"),
+        tenant_id: tenantId,
+        lead_no: generateDocumentNumber(tenantId, "lead"),
         company_name: "BlueLine Clinics",
         contact_name: "Hira Noor",
         email: "info@blueline.example",
@@ -96,8 +97,8 @@ function seedAlphaCrm() {
       },
       {
         id: id(),
-        tenant_id: DEMO_ALPHA,
-        lead_no: generateDocumentNumber(DEMO_ALPHA, "lead"),
+        tenant_id: tenantId,
+        lead_no: generateDocumentNumber(tenantId, "lead"),
         company_name: "Makkah Auto Hub",
         contact_name: "Sales Desk",
         email: "sales@makkahauto.example",
@@ -114,11 +115,11 @@ function seedAlphaCrm() {
     );
   }
 
-  if (!deals.some((d) => d.tenant_id === DEMO_ALPHA)) {
+  if (!deals.some((d) => d.tenant_id === tenantId)) {
     deals.push({
       id: id(),
-      tenant_id: DEMO_ALPHA,
-      deal_no: generateDocumentNumber(DEMO_ALPHA, "deal"),
+      tenant_id: tenantId,
+      deal_no: generateDocumentNumber(tenantId, "deal"),
       title: "Wholesale ERP rollout",
       customer_id: eastern.id,
       stage: "proposal",
@@ -133,6 +134,7 @@ function seedAlphaCrm() {
   }
 
   persist();
+  return true;
 }
 
 function persist() {
@@ -174,7 +176,7 @@ function ensureHydrated() {
     campaigns = snap.campaigns ?? [];
     tickets = snap.tickets ?? [];
   }
-  if (!isClientDatabasePrimary()) seedAlphaCrm();
+  if (!isOpsClientSyncEnabled()) seedCrmIfEmpty("alpha");
 }
 
 export function listLeads(tenantId: UUID, search?: string) {
@@ -681,6 +683,10 @@ registerOpsModule({
       campaigns,
       tickets
     });
+  },
+  seedIfEmpty: (tenantId) => {
+    ensureHydrated();
+    return seedCrmIfEmpty(tenantId);
   }
 });
 

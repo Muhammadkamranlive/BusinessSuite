@@ -18,8 +18,12 @@ export async function signOutSupabase() {
 
 export async function getSupabaseSession() {
   if (!isSupabaseConfigured()) return null;
-  const { data } = await getSupabaseClient().auth.getSession();
-  return data.session;
+  try {
+    const { data } = await getSupabaseClient().auth.getSession();
+    return data.session;
+  } catch {
+    return null;
+  }
 }
 
 export async function listMfaFactors() {
@@ -60,16 +64,24 @@ export async function unenrollFactor(factorId: string) {
 
 /** Returns true when AAL2 (MFA completed) is required but session is only AAL1. */
 export async function needsMfaChallenge() {
-  const supabase = getSupabaseClient();
-  const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
-  if (error) return false;
-  return data.currentLevel === "aal1" && data.nextLevel === "aal2";
+  try {
+    const supabase = getSupabaseClient();
+    const { data, error } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+    if (error) return false;
+    return data.currentLevel === "aal1" && data.nextLevel === "aal2";
+  } catch {
+    return false;
+  }
 }
 
 export async function hasTotpEnrolled() {
   if (!isSupabaseConfigured()) return false;
-  const factors = await listMfaFactors();
-  return (factors.totp?.length ?? 0) > 0;
+  try {
+    const factors = await listMfaFactors();
+    return (factors.totp?.length ?? 0) > 0;
+  } catch {
+    return false;
+  }
 }
 
 /** True when Supabase MFA challenge or HMS-mandated enrollment/verify is still required. */

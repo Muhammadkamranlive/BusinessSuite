@@ -8,6 +8,12 @@ import { cookies } from "next/headers";
 import { sessionCookieName, tenantCookieName } from "@/lib/auth/server/session-cookies";
 import { findProfileByEmail } from "@/lib/auth/server/platform-users";
 import { checkRateLimit, clientIpFromRequest, RATE_LIMITS } from "@/lib/auth/server/rate-limit";
+import {
+  canHmsRoleAccess,
+  platformRoleToHmsRole,
+  type HmsAction,
+  type HmsResource
+} from "@/lib/healthcare/hms-rbac";
 import type { RoleKey } from "@/lib/permissions";
 
 export type ApiSession = {
@@ -96,7 +102,23 @@ export function assertTenantMatch(
   };
 }
 
-export function requireHealthcareAccess(session: ApiSession): GuardFail | null {
+export function requireHealthcareAccess(
+  session: ApiSession,
+  opts?: { resource?: HmsResource; action?: HmsAction }
+): GuardFail | null {
+  const hmsRole = platformRoleToHmsRole(session.role);
+  if (hmsRole && opts?.resource && opts?.action) {
+    if (!canHmsRoleAccess(hmsRole, opts.resource, opts.action)) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { ok: false, error: "Forbidden — HMS role cannot access this resource" },
+          { status: 403 }
+        )
+      };
+    }
+  }
+
   if (HEALTHCARE_PHI_ROLES.has(session.role)) return null;
   // Demo operators and company staff with non-viewer roles that manage healthcare app
   if (session.role !== "viewer" && session.role !== "employee") return null;
@@ -147,7 +169,8 @@ export function requireCompanyAdmin(session: ApiSession): GuardFail | null {
 /** Composite guard for PHI healthcare sync routes. */
 export async function guardHealthcarePhiRoute(
   request: Request,
-  tenantId: string | null | undefined
+  tenantId: string | null | undefined,
+  opts?: { resource?: HmsResource; action?: HmsAction }
 ): Promise<GuardOk | GuardFail> {
   const rate = enforceRateLimit(request, "healthcareSync");
   if (rate) return rate;
@@ -158,7 +181,7 @@ export async function guardHealthcarePhiRoute(
   const mismatch = assertTenantMatch(sessionResult.session, tenantId);
   if (mismatch) return mismatch;
 
-  const rbac = requireHealthcareAccess(sessionResult.session);
+  const rbac = requireHealthcareAccess(sessionResult.session, opts);
   if (rbac) return rbac;
 
   return sessionResult;

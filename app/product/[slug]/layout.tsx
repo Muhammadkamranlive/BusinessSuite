@@ -12,8 +12,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     return { title: "Module" };
   }
   return {
-    title: `${module.title} | BusinessSuite ERP Cloud`,
-    description: module.summary
+    title: `${module.title} — ${module.eyebrow}`,
+    description: module.summary,
+    openGraph: {
+      title: `${module.title} — ${module.eyebrow}`,
+      description: module.summary,
+      images: [{ url: module.image, alt: module.heroCaption }]
+    }
   };
 }
 

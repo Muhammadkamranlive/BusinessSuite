@@ -13,6 +13,17 @@ import { getStoredUserEmail } from "@/lib/auth/session";
 import { useProductBrand } from "@/components/common/use-product-brand";
 import { MEGA_MENU_SECTIONS, TOTAL_PAYABLE_APP_COUNT } from "@/lib/billing/module-catalog";
 
+/** Footer "Product" column is generated from the billing catalog so it never drifts from what is sold. */
+const footerProductLinks = [
+  { href: "/#modules", label: "All apps" },
+  ...MEGA_MENU_SECTIONS.flatMap((section) =>
+    section.items
+      .filter((item) => item.href.startsWith("/product/"))
+      .map((item) => ({ href: item.href, label: item.label }))
+  ),
+  { href: "/pricing", label: "Pricing" }
+];
+
 const primaryNav = [
   { href: "/product/rule-engine", label: "Rule Engine" },
   { href: "/pricing", label: "Pricing" },
@@ -35,8 +46,8 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="mkt-root min-h-[100dvh] overflow-x-hidden">
-      <header className="sticky top-0 z-40 border-b border-[#e6ebf1] bg-white/80 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
+    <div className="mkt-root min-h-[100dvh] overflow-x-clip">
+      <header className="sticky top-0 z-40 border-b border-[color:var(--bs-line)] bg-white/80 backdrop-blur-xl pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 md:px-6">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
             <BrandMark />
@@ -52,7 +63,7 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-full px-3.5 py-2 text-[13px] font-medium text-slate-600 transition hover:bg-[color:var(--bs-cloud)] hover:text-[color:var(--bs-ink)]"
+                className="rounded-lg px-3 py-2 text-[13px] font-medium tracking-tight text-slate-600 transition hover:bg-[color:var(--bs-cloud)] hover:text-[color:var(--bs-ink)]"
               >
                 {item.label}
               </Link>
@@ -67,14 +78,14 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
                 <MktCta href="/login" variant="ghost">
                   Sign in
                 </MktCta>
-                <MktCta href="/signup">Start free trial</MktCta>
+                <MktCta href="/signup">Create your company</MktCta>
               </>
             )}
           </div>
 
           <button
             type="button"
-            className="inline-flex size-11 items-center justify-center rounded-full border border-[#e6ebf1] bg-white text-[#0a2540] lg:hidden"
+            className="inline-flex size-11 items-center justify-center rounded-full border border-[color:var(--bs-line)] bg-white text-[color:var(--bs-ink)] lg:hidden"
             onClick={() => setOpen((v) => !v)}
             aria-label="Toggle menu"
             aria-expanded={open}
@@ -84,55 +95,77 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
         </div>
 
         {open ? (
-          <div className="border-t border-[#e6ebf1] bg-white px-4 py-3 lg:hidden">
-            <div className="flex flex-col gap-1">
-              <p className="px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-400">Apps ({TOTAL_PAYABLE_APP_COUNT})</p>
-              <Link href="/#modules" className="rounded-xl px-3 py-3 text-sm font-medium text-[#0a2540]" onClick={() => setOpen(false)}>
-                All apps overview
-              </Link>
-              <Link href="/#build-your-plan" className="rounded-xl px-3 py-2.5 text-sm font-medium text-[color:var(--bs-teal)]" onClick={() => setOpen(false)}>
-                Pay per app pricing
-              </Link>
-              {MEGA_MENU_SECTIONS.map((section) => (
-                <div key={section.title}>
-                  <p className="px-3 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-slate-400">{section.title}</p>
-                  {section.items.map((item) => (
+          <div className="max-h-[min(80dvh,40rem)] overflow-y-auto border-t border-[color:var(--bs-line)] bg-white px-4 py-4 lg:hidden">
+            <div className="flex flex-col gap-5">
+              <div>
+                <div className="flex items-center justify-between px-1">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Product</p>
+                  <span className="text-[11px] font-medium text-slate-400">{TOTAL_PAYABLE_APP_COUNT} apps</span>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-1.5">
+                  {MEGA_MENU_SECTIONS.flatMap((section) =>
+                    section.items.map((item) => (
+                      <Link
+                        key={item.href + item.label}
+                        href={item.href}
+                        className="rounded-xl border border-[color:var(--bs-line)] bg-[color:var(--bs-cloud)] px-3 py-3 transition active:bg-white"
+                        onClick={() => setOpen(false)}
+                      >
+                        <span className="block text-[13px] font-semibold text-[color:var(--bs-ink)]">{item.label}</span>
+                        <span className="mt-0.5 block text-[10px] leading-snug text-slate-500 line-clamp-2">{item.tagline}</span>
+                      </Link>
+                    ))
+                  )}
+                </div>
+                <div className="mt-3 flex flex-col gap-2">
+                  <Link
+                    href="/#build-your-plan"
+                    className="rounded-xl bg-[color:var(--bs-ink)] px-3 py-3 text-center text-sm font-semibold text-white"
+                    onClick={() => setOpen(false)}
+                  >
+                    Build your plan
+                  </Link>
+                  <Link
+                    href="/#modules"
+                    className="rounded-xl px-3 py-2.5 text-center text-sm font-medium text-slate-600"
+                    onClick={() => setOpen(false)}
+                  >
+                    Browse all apps
+                  </Link>
+                </div>
+              </div>
+
+              <div className="border-t border-[color:var(--bs-line)] pt-3">
+                <p className="px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-400">Company</p>
+                <div className="mt-1 flex flex-col">
+                  {primaryNav.map((item) => (
                     <Link
-                      key={item.href + item.label}
+                      key={item.href}
                       href={item.href}
-                      className="block rounded-xl px-3 py-2.5 text-sm font-medium text-[#0a2540]"
+                      className="rounded-xl px-3 py-3 text-sm font-medium text-[color:var(--bs-ink)]"
                       onClick={() => setOpen(false)}
                     >
                       {item.label}
                     </Link>
                   ))}
+                  {menus.map((menu) => {
+                    const firstPage = listPages(menu.id)[0];
+                    const href = firstPage ? `/site/${menu.slug}/${firstPage.slug}` : `/site/${menu.slug}`;
+                    return (
+                      <Link key={menu.id} href={href} className="rounded-xl px-3 py-3 text-sm font-medium" onClick={() => setOpen(false)}>
+                        {menu.label}
+                      </Link>
+                    );
+                  })}
                 </div>
-              ))}
-              {primaryNav.map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className="rounded-xl px-3 py-3 text-sm font-medium text-[#0a2540]"
-                  onClick={() => setOpen(false)}
-                >
-                  {item.label}
-                </Link>
-              ))}
-              {menus.map((menu) => {
-                const firstPage = listPages(menu.id)[0];
-                const href = firstPage ? `/site/${menu.slug}/${firstPage.slug}` : `/site/${menu.slug}`;
-                return (
-                  <Link key={menu.id} href={href} className="rounded-xl px-3 py-3 text-sm font-medium" onClick={() => setOpen(false)}>
-                    {menu.label}
-                  </Link>
-                );
-              })}
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              </div>
+
+              <div className="flex flex-col gap-2 border-t border-[color:var(--bs-line)] pt-3 sm:flex-row">
                 <MktCta href="/login" variant="secondary" className="w-full">
                   <LogIn className="size-4" /> Sign in
                 </MktCta>
                 <MktCta href="/signup" className="w-full">
-                  Start free trial
+                  Create your company
                 </MktCta>
               </div>
             </div>
@@ -142,35 +175,33 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
 
       <main className="pb-[env(safe-area-inset-bottom)]">{children}</main>
 
-      <footer className="border-t border-[#e6ebf1] bg-white pb-[env(safe-area-inset-bottom)]">
+      <footer className="border-t border-[color:var(--bs-line)] bg-white pb-[env(safe-area-inset-bottom)]">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-16 md:grid-cols-4 md:px-6">
           <div className="md:col-span-1">
             <Link href="/" className="inline-flex items-center gap-2.5">
               <BrandMark />
-              <span className="text-[15px] font-semibold tracking-tight">{brand.productName}</span>
+              <span className="text-[15px] font-semibold tracking-tight text-[color:var(--bs-ink)]">{brand.productName}</span>
             </Link>
-            <p className="mt-4 max-w-xs text-sm leading-6 text-[#425466]">
-              Cloud ERP for operators — CRM, sales, stock, plant, people, hospital HMS, and finance in one subscribed workspace.
+            <p className="mt-4 max-w-xs text-sm leading-6 text-slate-600">
+              Cloud ERP for operators — CRM, sales, stock, plant, people, hospital HMS, pharmacy, and finance in one
+              subscribed workspace.
             </p>
-            <p className="mt-4 text-xs text-slate-400">Austin, TX · Support 8a–6p ET</p>
+            <p className="mt-4 text-xs text-slate-400">
+              {TOTAL_PAYABLE_APP_COUNT} pay-per apps · Shared SaaS, dedicated, self-hosted, or intranet
+            </p>
+            <div className="mt-5 flex flex-col gap-2 sm:flex-row md:flex-col">
+              <MktCta href="/signup" className="w-full sm:w-auto md:w-full">
+                Create your company
+              </MktCta>
+              <MktCta href="/contact" variant="secondary" className="w-full sm:w-auto md:w-full">
+                Talk to sales
+              </MktCta>
+            </div>
           </div>
           {[
             {
               title: "Product",
-              links: [
-                { href: "/#modules", label: "All modules" },
-                { href: "/product/email-engine", label: "Email Engine" },
-                { href: "/product/rule-engine", label: "Rule Engine" },
-                { href: "/product/crm", label: "CRM" },
-                { href: "/product/sales", label: "Sales" },
-                { href: "/product/hrm", label: "HRM" },
-                { href: "/product/healthcare", label: "Healthcare" },
-                { href: "/product/operations", label: "Operations" },
-                { href: "/product/finance", label: "Finance" },
-                { href: "/product/inventory", label: "Inventory" },
-                { href: "/product/administration", label: "Administration" },
-                { href: "/pricing", label: "Pricing" }
-              ]
+              links: footerProductLinks
             },
             {
               title: "Company",
@@ -192,8 +223,8 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
             }
           ].map((col) => (
             <div key={col.title}>
-              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#0a2540]">{col.title}</p>
-              <div className="mt-4 flex flex-col gap-2.5 text-sm text-[#425466]">
+              <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[color:var(--bs-ink)]">{col.title}</p>
+              <div className="mt-4 flex flex-col gap-2.5 text-sm text-slate-600">
                 {col.links.map((link) => (
                   <Link key={link.href + link.label} href={link.href} className="transition hover:text-[color:var(--bs-teal)]">
                     {link.label}
@@ -203,9 +234,12 @@ export function PublicSiteShell({ children }: { children: React.ReactNode }) {
             </div>
           ))}
         </div>
-        <div className="border-t border-[#eef2f6]">
-          <div className="mx-auto max-w-6xl px-4 py-5 text-xs text-slate-400 md:px-6">
-            <p>© {new Date().getFullYear()} {brand.legalName}</p>
+        <div className="border-t border-[color:var(--bs-line)]">
+          <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-5 text-xs text-slate-400 md:flex-row md:items-center md:justify-between md:px-6">
+            <p>
+              © {new Date().getFullYear()} {brand.legalName} · All rights reserved
+            </p>
+            <p>Card payments processed by Stripe · Tenant-isolated Postgres · Role-based access on every menu</p>
           </div>
         </div>
       </footer>
